@@ -118,6 +118,9 @@ const waxId = `wax-${useId()}`
       <span class="env__flap" />
     </div>
 
+    <!-- Объём: свет в середине, тень по углам и «карман» под вершиной. -->
+    <span class="env__depth" aria-hidden="true" />
+
     <!--
       Всё, что напечатано на конверте под печатью: имена (тем же набором,
       что и внутри письма), дата и отсчёт. Одним блоком, а не тремя
@@ -281,6 +284,27 @@ html.has-js .env.is-done {
     drop-shadow(0 -9px 20px rgba(8, 14, 10, 0.6));
 }
 
+/**
+ * Слой объёма поверх бумаги, но под печатью и письмом.
+ *   - первый градиент: тень в «кармане», куда упирается вершина клапана;
+ *   - второй: виньетка, свет в середине и затемнение к углам. Без неё
+ *     конверт остаётся плоской выкройкой, как бы ни были нарисованы сгибы.
+ */
+.env__depth {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% var(--flap),
+      rgba(8, 14, 10, 0.34),
+      rgba(8, 14, 10, 0.12) 14%,
+      transparent 30%
+    ),
+    radial-gradient(125% 88% at 50% 42%, transparent 38%, rgba(8, 14, 10, 0.45) 100%);
+}
+
 /* ---------- клапан ---------- */
 .env__scene {
   position: absolute;
@@ -333,7 +357,7 @@ html.has-js .env.is-done {
   position: absolute;
   top: calc(var(--flap) - var(--seal) / 2);
   left: calc(50% - var(--seal) / 2);
-  z-index: 3;
+  z-index: 4;
   display: grid;
   place-items: center;
   width: var(--seal);
@@ -489,7 +513,8 @@ html.has-js .env.is-done {
   top: calc(var(--flap) + var(--seal) * 0.62);
   left: 0;
   right: 0;
-  z-index: 1;
+  /* Над слоем объёма: виньетка не должна съедать читаемость надписей. */
+  z-index: 3;
   display: grid;
   justify-items: center;
   gap: clamp(0.5rem, 2.5vw, 0.9rem);
@@ -553,7 +578,8 @@ html.has-js .env.is-done {
 /* ---------- письмо ---------- */
 .env__letter {
   position: relative;
-  z-index: 1;
+  /* Выше слоя объёма: виньетка тушит бумагу, но не само письмо. */
+  z-index: 3;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -663,7 +689,7 @@ html.has-js .env.is-done {
   position: absolute;
   bottom: clamp(0.9rem, 3vw, 1.4rem);
   left: 50%;
-  z-index: 4;
+  z-index: 5;
   min-height: 34px;
   padding: 0.2rem 0.75rem;
   border: 0;
