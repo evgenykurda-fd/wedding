@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useId } from 'vue'
 import { WEDDING } from '~/utils/wedding'
 
 /**
@@ -48,6 +49,9 @@ function waxBlob(r: number, wobble: number): string {
 
 const wax = waxBlob(41, 2.6)
 const waxInner = waxBlob(31, 1.8)
+
+/** Свой градиент на каждый экземпляр: ссылки url(#…) не должны пересекаться. */
+const waxId = `wax-${useId()}`
 </script>
 
 <template>
@@ -138,7 +142,15 @@ const waxInner = waxBlob(31, 1.8)
       <span class="env__seal-ring" aria-hidden="true" />
       <span class="env__seal-halo" aria-hidden="true" />
       <svg class="env__seal-wax" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-        <path class="env__wax-body" :d="wax" />
+        <defs>
+          <!-- Свет падает сверху слева, к краям воск уходит в тень. -->
+          <radialGradient :id="waxId" cx="34%" cy="28%" r="82%">
+            <stop class="env__wax-stop--light" offset="0" />
+            <stop class="env__wax-stop--mid" offset="0.55" />
+            <stop class="env__wax-stop--deep" offset="1" />
+          </radialGradient>
+        </defs>
+        <path class="env__wax-body" :d="wax" :fill="`url(#${waxId})`" />
         <path class="env__wax-inner" :d="waxInner" />
         <path class="env__wax-gloss" d="M27 33c5-9 15-14 25-13" fill="none" stroke-linecap="round" />
       </svg>
@@ -297,7 +309,10 @@ html.has-js .env.is-done {
   border: 0;
   background: none;
   cursor: pointer;
-  filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--accent-ink) 42%, transparent));
+  /* Тень тоже вне темы: на тёмном фоне светлый акцент давал бледный ореол
+     вместо тени, и печать будто парила отдельно от бумаги. */
+  filter: drop-shadow(0 10px 18px rgba(58, 28, 12, 0.42))
+    drop-shadow(0 2px 3px rgba(58, 28, 12, 0.3));
   transition: transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.45s ease 0.1s;
 }
 
@@ -332,25 +347,41 @@ html.has-js .env.is-done {
   height: 100%;
 }
 
+/**
+ * Цвета воска заданы явными hex и НЕ берутся из токенов темы. В тёмной теме
+ * акцент светло-персиковый, и печать превращалась в бледную наклейку, тогда
+ * как сургуч остаётся тёмно-терракотовым при любом освещении.
+ */
+.env__wax-stop--light {
+  stop-color: #c9814f;
+}
+
+.env__wax-stop--mid {
+  stop-color: #a95f37;
+}
+
+.env__wax-stop--deep {
+  stop-color: #7d4223;
+}
+
 .env__wax-body {
-  fill: var(--accent);
-  stroke: color-mix(in srgb, var(--accent-ink) 80%, var(--gold));
+  stroke: #6a3418;
   stroke-width: 1.4;
 }
 
 .env__wax-inner {
   fill: none;
-  stroke: color-mix(in srgb, var(--gold) 75%, var(--accent-ink));
+  stroke: #f0cf9c;
   stroke-width: 1;
   stroke-dasharray: 1 4.5;
   stroke-linecap: round;
-  opacity: 0.85;
+  opacity: 0.7;
 }
 
 .env__wax-gloss {
-  stroke: color-mix(in srgb, var(--gold) 60%, transparent);
+  stroke: #ffe2b5;
   stroke-width: 3.2;
-  opacity: 0.55;
+  opacity: 0.4;
 }
 
 .env__seal-mono {
@@ -362,8 +393,10 @@ html.has-js .env.is-done {
   font-size: calc(var(--seal) * 0.3);
   font-style: italic;
   line-height: 1;
-  color: var(--on-sage);
-  text-shadow: 0 1px 1px color-mix(in srgb, var(--accent-ink) 70%, transparent);
+  /* Тёплый белый поверх воска — тоже вне темы, иначе в тёмной буквы
+     оказывались тёмными на тёмном. */
+  color: #fff6e8;
+  text-shadow: 0 1px 1px rgba(88, 44, 20, 0.65);
 }
 
 .env__seal-mono i {
