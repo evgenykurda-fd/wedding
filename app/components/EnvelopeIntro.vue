@@ -256,7 +256,8 @@ html.has-js .env.is-done {
 .env__seam--left {
   clip-path: polygon(0 var(--flap-fold), 50% var(--flap), 0 var(--flap-fold-bottom));
   background-color: rgba(0, 0, 0, 0.12);
-  background-image: linear-gradient(100deg, color-mix(in srgb, var(--sage) 14%, transparent), transparent 66%);
+  background-image: linear-gradient(90deg, rgba(255, 248, 234, 0.08), rgba(0, 0, 0, 0.12) 88%),
+    linear-gradient(100deg, color-mix(in srgb, var(--sage) 14%, transparent), transparent 66%);
   filter: drop-shadow(1.5px 0 0 rgba(255, 246, 228, 0.18))
     drop-shadow(7px 0 16px rgba(8, 14, 10, 0.55));
 }
@@ -264,7 +265,8 @@ html.has-js .env.is-done {
 .env__seam--right {
   clip-path: polygon(100% var(--flap-fold), 50% var(--flap), 100% var(--flap-fold-bottom));
   background-color: rgba(0, 0, 0, 0.12);
-  background-image: linear-gradient(260deg, color-mix(in srgb, var(--rose) 15%, transparent), transparent 66%);
+  background-image: linear-gradient(270deg, rgba(255, 248, 234, 0.08), rgba(0, 0, 0, 0.12) 88%),
+    linear-gradient(260deg, color-mix(in srgb, var(--rose) 15%, transparent), transparent 66%);
   filter: drop-shadow(-1.5px 0 0 rgba(255, 246, 228, 0.18))
     drop-shadow(-7px 0 16px rgba(8, 14, 10, 0.55));
 }
@@ -279,7 +281,8 @@ html.has-js .env.is-done {
     0 100%
   );
   background-color: rgba(255, 248, 234, 0.09);
-  background-image: linear-gradient(0deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
+  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.09), rgba(0, 0, 0, 0.14) 90%),
+    linear-gradient(0deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
   filter: drop-shadow(0 -1.5px 0 rgba(255, 246, 228, 0.24))
     drop-shadow(0 -9px 20px rgba(8, 14, 10, 0.6));
 }
@@ -333,7 +336,8 @@ html.has-js .env.is-done {
   );
   /* Верхняя створка ловит больше света, поэтому она самая светлая. */
   background-color: rgba(255, 248, 234, 0.06);
-  background-image: linear-gradient(
+  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.13) 92%),
+    linear-gradient(
     172deg,
     color-mix(in srgb, var(--gold) 26%, var(--card)),
     color-mix(in srgb, var(--sage) 22%, var(--card))
