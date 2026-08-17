@@ -24,7 +24,7 @@ const rows = [
           <circle cx="16.5" cy="19" r="1.5" />
         </g>
       </svg>
-      <h3 class="transfer__title display">Автобус для гостей</h3>
+      <h3 class="transfer__title display">Трансфер для гостей</h3>
     </div>
 
     <dl class="transfer__rows">

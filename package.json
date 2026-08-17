@@ -9,6 +9,9 @@
     "build:one": "nuxi generate && node scripts/bundle.mjs",
     "preview:dist": "node scripts/serve-dist.mjs"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "nuxt": "4.5.2",
     "vue": "^3.5.0"
