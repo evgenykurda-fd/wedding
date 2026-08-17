@@ -125,15 +125,20 @@ const sparkles = [
   aspect-ratio: 3 / 2;
 }
 
-/* Тёплое свечение под кольцами, чуть пульсирующее. */
+/**
+ * Тёплое свечение под кольцами. Затухание растянуто на несколько остановок:
+ * с одной резкой границей в тёмной теме был виден чёткий круг вместо света.
+ */
 .rings__glow {
   position: absolute;
-  inset: 6% 4%;
+  inset: -12%;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--gold) 30%, transparent),
-    transparent 68%
+    color-mix(in srgb, var(--gold) 22%, transparent) 0%,
+    color-mix(in srgb, var(--gold) 12%, transparent) 34%,
+    color-mix(in srgb, var(--gold) 4%, transparent) 58%,
+    transparent 78%
   );
   animation: rings-glow 5.5s ease-in-out infinite;
 }
