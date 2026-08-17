@@ -38,6 +38,17 @@ const rows = [
     </dl>
 
     <p class="transfer__note">{{ WEDDING.transfer.note }}</p>
+
+    <!-- Ночёвка отдельной плашкой: это не про дорогу, а про остаться. -->
+    <p class="transfer__stay">
+      <svg class="transfer__stay-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 19v-9M3 13h13a4 4 0 0 1 4 4v2M3 19h18" />
+          <circle cx="7.5" cy="9.5" r="2" />
+        </g>
+      </svg>
+      {{ WEDDING.transfer.stay }}
+    </p>
   </div>
 </template>
 
@@ -119,5 +130,25 @@ const rows = [
   margin-top: 1.1rem;
   font-size: 0.92rem;
   color: var(--ink-soft);
+}
+
+.transfer__stay {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--sage) 12%, transparent);
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.transfer__stay-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 0.15rem;
+  color: var(--sage-ink);
 }
 </style>

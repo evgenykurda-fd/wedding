@@ -31,7 +31,7 @@ const srText = `До свадьбы осталось ${days.value} ${days.label}
     <p class="sr-only" data-cd-sr>{{ srText }}</p>
 
     <p class="cd__note" data-reveal>
-      Церемония — {{ WEDDING.date.human }} в {{ WEDDING.venues.ceremony.time }} по минскому времени.
+      Церемония - {{ WEDDING.date.human }} в {{ WEDDING.venues.ceremony.time }} по минскому времени.
     </p>
   </div>
 </template>

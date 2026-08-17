@@ -30,7 +30,7 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 <template>
   <div class="rsvp">
     <p class="rsvp__deadline" data-reveal>
-      Пожалуйста, дайте знать до <strong>{{ WEDDING.rsvpDeadline }}</strong> — нам нужно назвать
+      Пожалуйста, дайте знать до <strong>{{ WEDDING.rsvpDeadline }}</strong> - нам нужно назвать
       усадьбе точное число гостей.
     </p>
 
@@ -68,7 +68,7 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
             {{ option.label }}
           </option>
         </select>
-        <p class="rsvp__note">Считайте себя и всех, кто приедет с вами, — вместе с детьми.</p>
+        <p class="rsvp__note">Считайте себя и всех, кто приедет с вами, - вместе с детьми.</p>
       </div>
 
       <div class="rsvp__field">
@@ -105,11 +105,11 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
       <!-- Ник вынесен из строки в ссылку: по нему можно сразу открыть чат. -->
       <p class="rsvp__hint">
         <template v-if="direct">
-          Нажмите — и ответ придёт нам в Telegram, никуда переходить не нужно. Если что-то
+          Нажмите - и ответ придёт нам в Telegram, никуда переходить не нужно. Если что-то
           не сработает, текст скопируется, и его можно отправить вручную в
         </template>
         <template v-else>
-          Текст ответа копируется сам — останется вставить его и отправить в
+          Текст ответа копируется сам - останется вставить его и отправить в
         </template>
         <a
           class="rsvp__nick"

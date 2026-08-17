@@ -90,8 +90,8 @@ const waxInner = waxBlob(31, 1.8)
       <BotanicalDivider class="env__rule" style="--d: 450ms" />
 
       <p class="env__text" style="--d: 520ms">
-        Дорогие друзья и родные! Мы женимся — и будем счастливы видеть вас в этот день рядом
-        с нами.
+        Дорогие друзья и родные! У нас свадьба, и мы будем счастливы видеть вас в этот день
+        рядом с нами.
       </p>
 
       <button type="button" class="btn btn--solid env__enter" data-envelope-enter style="--d: 620ms">

@@ -5,10 +5,10 @@
 import inviteScript from '~/assets/invite.js?raw'
 import { WEDDING, weddingClientConfig } from '~/utils/wedding'
 
-const title = `${WEDDING.groom} и ${WEDDING.bride} — свадьба ${WEDDING.date.human}`
+const title = `${WEDDING.groom} и ${WEDDING.bride} - свадьба ${WEDDING.date.human}`
 const description =
-  `${WEDDING.date.human}, ${WEDDING.date.weekday}. Роспись в ${WEDDING.venues.ceremony.time} — ` +
-  `${WEDDING.venues.ceremony.name}. Празднование — ${WEDDING.venues.party.name}. Будем очень рады видеть вас.`
+  `${WEDDING.date.human}, ${WEDDING.date.weekday}. Роспись в ${WEDDING.venues.ceremony.time} - ` +
+  `${WEDDING.venues.ceremony.name}. Празднование - ${WEDDING.venues.party.name}. Будем очень рады видеть вас.`
 
 useSeoMeta({
   title,
