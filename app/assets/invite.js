@@ -134,11 +134,13 @@
       state = 'cracking'
       env.classList.add('is-cracking')
 
+      // Пауза между «печать отлетела» и «клапан пошёл»: без неё оба
+      // движения сливаются в один рывок.
       later(function () {
         state = 'opened'
         env.classList.add('is-opened')
         focusSafely(enterButton)
-      }, prefersReducedMotion ? 60 : 300)
+      }, prefersReducedMotion ? 60 : 420)
     }
 
     /** Уходим со заставки на страницу. instant — без анимации. */
@@ -159,7 +161,7 @@
       later(function () {
         env.classList.add('is-done')
         state = 'done'
-      }, 620)
+      }, 780)
     }
 
     // Конверт показываем всегда, даже если в ссылке есть якорь (#rsvp):

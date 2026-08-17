@@ -182,7 +182,7 @@ html.has-js .env {
   /* Бумага конверта. Отступов нет намеренно: клапан и швы считают
      координаты от края экрана. */
   background: linear-gradient(160deg, var(--card), color-mix(in srgb, var(--gold) 12%, var(--card)));
-  transition: opacity 0.6s ease;
+  transition: opacity 0.75s ease;
 }
 
 /* Сработало «пропустить» или анимация закончилась — оверлея больше нет. */
@@ -208,8 +208,14 @@ html.has-js .env.is-done {
    * ниже своей вершины.
    */
   --flap-v: min(30vw, 26vh);
-  /** Линия сгиба: высота, на которой у клапана начинаются скосы. */
+  /** Линия сгиба верхнего клапана: высота, на которой начинаются скосы. */
   --flap-fold: calc(var(--flap) - var(--flap-v));
+  /**
+   * Линия сгиба нижнего клапана. Раньше он сходился к вершине прямо от
+   * нижних углов и получался неестественно острым; теперь скос такой же
+   * пологий, как у верхнего.
+   */
+  --flap-fold-bottom: calc(var(--flap) + var(--flap-v));
   --seal: clamp(128px, 34vw, 190px);
 
   display: none;
@@ -235,22 +241,44 @@ html.has-js .env.is-done {
   pointer-events: none;
 }
 
+/**
+ * Светлота створок разная — как у сложенной бумаги, которая по-разному
+ * ловит свет. Нейтральные подложки (чёрная и белая полупрозрачные) работают
+ * в обеих темах, а цветные градиенты только подкрашивают.
+ *
+ * Тени двойные: первая, без размытия и на пиксель, рисует светлую линию
+ * по сгибу — drop-shadow повторяет форму, обрезанную clip-path. Вторая,
+ * размытая и тёмная, отодвигает створку от соседней.
+ */
 .env__seam--left {
-  clip-path: polygon(0 var(--flap-fold), 50% var(--flap), 0 100%);
-  background: linear-gradient(100deg, color-mix(in srgb, var(--sage) 9%, transparent), transparent 70%);
-  filter: drop-shadow(1px 0 2px color-mix(in srgb, var(--ink) 14%, transparent));
+  clip-path: polygon(0 var(--flap-fold), 50% var(--flap), 0 var(--flap-fold-bottom));
+  background-color: rgba(0, 0, 0, 0.07);
+  background-image: linear-gradient(100deg, color-mix(in srgb, var(--sage) 14%, transparent), transparent 66%);
+  filter: drop-shadow(1px 0 0 rgba(255, 246, 228, 0.14))
+    drop-shadow(5px 0 11px rgba(10, 18, 12, 0.45));
 }
 
 .env__seam--right {
-  clip-path: polygon(100% var(--flap-fold), 50% var(--flap), 100% 100%);
-  background: linear-gradient(260deg, color-mix(in srgb, var(--rose) 10%, transparent), transparent 70%);
-  filter: drop-shadow(-1px 0 2px color-mix(in srgb, var(--ink) 14%, transparent));
+  clip-path: polygon(100% var(--flap-fold), 50% var(--flap), 100% var(--flap-fold-bottom));
+  background-color: rgba(0, 0, 0, 0.07);
+  background-image: linear-gradient(260deg, color-mix(in srgb, var(--rose) 15%, transparent), transparent 66%);
+  filter: drop-shadow(-1px 0 0 rgba(255, 246, 228, 0.14))
+    drop-shadow(-5px 0 11px rgba(10, 18, 12, 0.45));
 }
 
+/* Нижняя створка лежит поверх боковых: она светлее, а тень падает вверх. */
 .env__seam--bottom {
-  clip-path: polygon(0 100%, 50% var(--flap), 100% 100%);
-  background: linear-gradient(0deg, color-mix(in srgb, var(--gold) 11%, transparent), transparent 76%);
-  filter: drop-shadow(0 -1px 3px color-mix(in srgb, var(--ink) 16%, transparent));
+  clip-path: polygon(
+    0 var(--flap-fold-bottom),
+    50% var(--flap),
+    100% var(--flap-fold-bottom),
+    100% 100%,
+    0 100%
+  );
+  background-color: rgba(255, 248, 234, 0.055);
+  background-image: linear-gradient(0deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
+  filter: drop-shadow(0 -1px 0 rgba(255, 246, 228, 0.18))
+    drop-shadow(0 -6px 14px rgba(10, 18, 12, 0.5));
 }
 
 /* ---------- клапан ---------- */
@@ -279,16 +307,21 @@ html.has-js .env.is-done {
     50% 100%,
     0 calc(100% - var(--flap-v))
   );
-  background: linear-gradient(
+  /* Верхняя створка ловит больше света, поэтому она самая светлая. */
+  background-color: rgba(255, 248, 234, 0.06);
+  background-image: linear-gradient(
     172deg,
-    color-mix(in srgb, var(--gold) 24%, var(--card)),
-    color-mix(in srgb, var(--sage) 20%, var(--card))
+    color-mix(in srgb, var(--gold) 26%, var(--card)),
+    color-mix(in srgb, var(--sage) 22%, var(--card))
   );
   transform-origin: top center;
   /* drop-shadow, а не box-shadow: тень должна повторять треугольник,
      обрезанный clip-path, а не рамку элемента. */
-  filter: drop-shadow(0 12px 16px color-mix(in srgb, var(--ink) 18%, transparent));
-  transition: transform 1.15s cubic-bezier(0.35, 0.02, 0.24, 1), opacity 0.5s ease;
+  filter: drop-shadow(0 1px 0 rgba(255, 246, 228, 0.2))
+    drop-shadow(0 16px 26px rgba(10, 18, 12, 0.55));
+  /* Долгий ход с мягким входом и выходом: клапан должен откидываться, как
+     бумага, а не отщёлкиваться. */
+  transition: transform 1.7s cubic-bezier(0.3, 0.06, 0.2, 1), opacity 0.6s ease;
 }
 
 .env.is-opened .env__flap {
@@ -313,7 +346,7 @@ html.has-js .env.is-done {
      вместо тени, и печать будто парила отдельно от бумаги. */
   filter: drop-shadow(0 10px 18px rgba(58, 28, 12, 0.42))
     drop-shadow(0 2px 3px rgba(58, 28, 12, 0.3));
-  transition: transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.45s ease 0.1s;
+  transition: transform 0.75s cubic-bezier(0.32, 1.15, 0.6, 1), opacity 0.6s ease 0.15s;
 }
 
 .env__seal:hover {
@@ -538,8 +571,10 @@ html.has-js .env.is-done {
     linear-gradient(170deg, var(--bg), color-mix(in srgb, var(--gold) 7%, var(--bg)));
   box-shadow: 0 26px 55px -28px color-mix(in srgb, var(--ink) 55%, transparent);
   opacity: 0;
-  transform: translateY(30px) scale(0.95);
-  transition: opacity 0.75s ease, transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform: translateY(34px) scale(0.95);
+  /* Письмо выходит дольше клапана и с задержкой: сначала открылось, потом
+     показалось содержимое. */
+  transition: opacity 1.1s ease 0.25s, transform 1.3s cubic-bezier(0.22, 0.61, 0.36, 1) 0.25s;
 }
 
 .env.is-opened .env__letter {
@@ -559,8 +594,9 @@ html.has-js .env.is-done {
 /* Содержимое письма проявляется по одному, пока клапан ещё едет. */
 .env__letter > *:not(.env__letter-frame) {
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.55s ease var(--d, 0ms), transform 0.55s ease var(--d, 0ms);
+  transform: translateY(12px);
+  transition: opacity 0.7s ease calc(var(--d, 0ms) + 350ms),
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) calc(var(--d, 0ms) + 350ms);
 }
 
 .env.is-opened .env__letter > *:not(.env__letter-frame) {
