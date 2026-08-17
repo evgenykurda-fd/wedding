@@ -252,18 +252,18 @@ html.has-js .env.is-done {
  */
 .env__seam--left {
   clip-path: polygon(0 var(--flap-fold), 50% var(--flap), 0 var(--flap-fold-bottom));
-  background-color: rgba(0, 0, 0, 0.07);
+  background-color: rgba(0, 0, 0, 0.12);
   background-image: linear-gradient(100deg, color-mix(in srgb, var(--sage) 14%, transparent), transparent 66%);
-  filter: drop-shadow(1px 0 0 rgba(255, 246, 228, 0.14))
-    drop-shadow(5px 0 11px rgba(10, 18, 12, 0.45));
+  filter: drop-shadow(1.5px 0 0 rgba(255, 246, 228, 0.18))
+    drop-shadow(7px 0 16px rgba(8, 14, 10, 0.55));
 }
 
 .env__seam--right {
   clip-path: polygon(100% var(--flap-fold), 50% var(--flap), 100% var(--flap-fold-bottom));
-  background-color: rgba(0, 0, 0, 0.07);
+  background-color: rgba(0, 0, 0, 0.12);
   background-image: linear-gradient(260deg, color-mix(in srgb, var(--rose) 15%, transparent), transparent 66%);
-  filter: drop-shadow(-1px 0 0 rgba(255, 246, 228, 0.14))
-    drop-shadow(-5px 0 11px rgba(10, 18, 12, 0.45));
+  filter: drop-shadow(-1.5px 0 0 rgba(255, 246, 228, 0.18))
+    drop-shadow(-7px 0 16px rgba(8, 14, 10, 0.55));
 }
 
 /* Нижняя створка лежит поверх боковых: она светлее, а тень падает вверх. */
@@ -275,10 +275,10 @@ html.has-js .env.is-done {
     100% 100%,
     0 100%
   );
-  background-color: rgba(255, 248, 234, 0.055);
+  background-color: rgba(255, 248, 234, 0.09);
   background-image: linear-gradient(0deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
-  filter: drop-shadow(0 -1px 0 rgba(255, 246, 228, 0.18))
-    drop-shadow(0 -6px 14px rgba(10, 18, 12, 0.5));
+  filter: drop-shadow(0 -1.5px 0 rgba(255, 246, 228, 0.24))
+    drop-shadow(0 -9px 20px rgba(8, 14, 10, 0.6));
 }
 
 /* ---------- клапан ---------- */
@@ -317,8 +317,8 @@ html.has-js .env.is-done {
   transform-origin: top center;
   /* drop-shadow, а не box-shadow: тень должна повторять треугольник,
      обрезанный clip-path, а не рамку элемента. */
-  filter: drop-shadow(0 1px 0 rgba(255, 246, 228, 0.2))
-    drop-shadow(0 16px 26px rgba(10, 18, 12, 0.55));
+  filter: drop-shadow(0 1.5px 0 rgba(255, 246, 228, 0.26))
+    drop-shadow(0 20px 32px rgba(8, 14, 10, 0.62));
   /* Долгий ход с мягким входом и выходом: клапан должен откидываться, как
      бумага, а не отщёлкиваться. */
   transition: transform 1.7s cubic-bezier(0.3, 0.06, 0.2, 1), opacity 0.6s ease;
