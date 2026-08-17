@@ -27,6 +27,13 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    /**
+     * Пресет закреплён намеренно. На хостингах Nitro подставляет свой:
+     * на Vercel — vercel-static, а он кладёт результат в .vercel/output/static
+     * вместо .output/public. Тогда scripts/bundle.mjs не находит пререндер и
+     * сборка падает. С 'static' результат всегда в одном и том же месте.
+     */
+    preset: 'static',
     prerender: {
       routes: ['/'],
       crawlLinks: false,
