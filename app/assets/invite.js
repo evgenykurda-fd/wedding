@@ -46,6 +46,48 @@
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   /* ------------------------------------------------------------------
+     Переключатель темы.
+
+     По умолчанию страница светлая — как бумага приглашения, независимо от
+     настроек телефона. Выбор гостя запоминается в localStorage, а применяет
+     его бутстрап в <head>: до первой отрисовки, чтобы не мигало.
+     ------------------------------------------------------------------ */
+  var THEME_KEY = 'wedding-theme'
+
+  function initTheme() {
+    var toggles = document.querySelectorAll('[data-theme-toggle]')
+    if (!toggles.length) return
+
+    /** Тему всегда ставит бутстрап, так что читаем её прямо с <html>. */
+    function isDark() {
+      return root.getAttribute('data-theme') === 'dark'
+    }
+
+    function paint() {
+      var dark = isDark()
+      forEach(toggles, function (button) {
+        button.classList.toggle('is-dark', dark)
+        button.setAttribute('aria-label', dark ? 'Включить светлую тему' : 'Включить тёмную тему')
+      })
+    }
+
+    forEach(toggles, function (button) {
+      button.addEventListener('click', function () {
+        var next = isDark() ? 'light' : 'dark'
+        root.setAttribute('data-theme', next)
+        try {
+          localStorage.setItem(THEME_KEY, next)
+        } catch (err) {
+          // Приватный режим или file:// без хранилища — тема просто не запомнится.
+        }
+        paint()
+      })
+    })
+
+    paint()
+  }
+
+  /* ------------------------------------------------------------------
      Открытка-заставка.
 
      Порядок состояний: is-cracking (печать отлетает) → is-opened
@@ -653,9 +695,17 @@
    * перед закрытой заставкой. Заставка идёт первой по той же причине.
    */
   function start() {
-    forEach([initEnvelope, initReveal, initStickyBar, initCountdown, initRsvp, initCalendar], function (
-      init,
-    ) {
+    var blocks = [
+      initTheme,
+      initEnvelope,
+      initReveal,
+      initStickyBar,
+      initCountdown,
+      initRsvp,
+      initCalendar,
+    ]
+
+    forEach(blocks, function (init) {
       try {
         init()
       } catch (err) {

@@ -25,7 +25,9 @@ useSeoMeta({
  * Бутстрап. Должен выполниться ДО первой отрисовки, поэтому живёт в <head>
  * отдельно от основного скрипта, который стоит перед </body>:
  *   - has-js разрешает CSS прятать секции под анимацию появления;
- *   - is-sealed запирает прокрутку страницы под открыткой-заставкой.
+ *   - is-sealed запирает прокрутку страницы под открыткой-заставкой;
+ *   - тема ставится здесь же: по умолчанию светлая, а если гость уже выбирал
+ *     тёмную — она. Позже было бы поздно: страница успела бы мигнуть.
  *
  * Таймер — страховка. Если основной скрипт по какой-то причине не доберётся
  * до открытки (класс env-ready), гость не должен остаться перед запертой
@@ -33,6 +35,8 @@ useSeoMeta({
  */
 const bootstrap = `(function(){var r=document.documentElement;
 r.classList.add('has-js','is-sealed');
+var t='light';try{if(localStorage.getItem('wedding-theme')==='dark')t='dark'}catch(e){}
+r.setAttribute('data-theme',t);
 setTimeout(function(){
 if(r.classList.contains('env-ready'))return;
 r.classList.remove('is-sealed');r.classList.add('is-entered');

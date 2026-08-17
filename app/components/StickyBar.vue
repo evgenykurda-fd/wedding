@@ -24,6 +24,26 @@ import { WEDDING } from '~/utils/wedding'
         </span>
       </p>
 
+      <!-- Иконку переключает invite.js: показываем ту тему, в которую
+           нажатие переведёт, а не текущую. -->
+      <button type="button" class="bar__theme" data-theme-toggle aria-label="Сменить тему">
+        <svg class="bar__theme-icon bar__theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.6 8.6 0 1 0 10.8 10.8z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <svg class="bar__theme-icon bar__theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4.2" />
+            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" />
+          </g>
+        </svg>
+      </button>
+
       <a class="bar__cta" href="#rsvp">
         Ответить
         <svg class="bar__cta-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -80,8 +100,7 @@ import { WEDDING } from '~/utils/wedding'
 .bar__inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.6rem;
   min-height: 56px;
   padding-block: 0.45rem;
 }
@@ -131,6 +150,48 @@ import { WEDDING } from '~/utils/wedding'
   text-transform: uppercase;
   color: var(--ink-soft);
   white-space: nowrap;
+}
+
+/* Переключатель темы. Живёт в шапке, а не отдельной плавающей кнопкой:
+   так он не спорит с конвертом и не закрывает содержимое. */
+.bar__theme {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--sage-ink);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.18s ease;
+}
+
+.bar__theme:hover {
+  border-color: var(--sage);
+  color: var(--accent-ink);
+  transform: translateY(-1px);
+}
+
+.bar__theme-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* По умолчанию тема светлая: предлагаем перейти в тёмную. */
+.bar__theme-icon--sun {
+  display: none;
+}
+
+.bar__theme.is-dark .bar__theme-icon--moon {
+  display: none;
+}
+
+.bar__theme.is-dark .bar__theme-icon--sun {
+  display: block;
 }
 
 .bar__cta {
