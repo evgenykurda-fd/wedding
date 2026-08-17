@@ -3,19 +3,21 @@ import { useId } from 'vue'
 import { WEDDING } from '~/utils/wedding'
 
 /**
- * Конверт-заставка на весь экран.
+ * Конверт-заставка.
  *
- * Гость видит запечатанный конверт: треугольный клапан сверху, сургучная
- * печать в его вершине и мягко моргающее кольцо вокруг печати — это и есть
- * приглашение нажать. По нажатию печать отлетает, клапан откидывается
- * назад, и из конверта проявляется письмо с кнопкой входа.
+ * Гость видит запечатанный конверт: классическая геометрия — четыре грани
+ * сходятся в одной точке, сверху клапан, в его вершине сургучная печать с
+ * мягко моргающим кольцом. По нажатию печать отлетает, клапан откидывается
+ * назад, и из конверта поднимается письмо с кнопкой входа.
  *
  * Как это устроено:
  *   - оверлей есть в разметке всегда, но CSS показывает его ТОЛЬКО под
  *     html.has-js: при заблокированном JS открыть конверт было бы нечем;
- *   - геометрия держится на одной переменной --flap: это и высота клапана,
- *     и вершина, в которой сходятся боковые швы, и координата печати —
- *     поэтому конверт остаётся собранным на любом соотношении сторон;
+ *   - конверт — отдельный объект с постоянными пропорциями, а не растянутая
+ *     на весь экран выкройка: только так грани сходятся под естественными
+ *     углами на любом устройстве;
+ *   - вся геометрия держится на --tip: это и вершина клапана, и точка, где
+ *     встречаются боковые грани, и координата печати;
  *   - смену состояний (is-cracking → is-opened → is-leaving) делает
  *     invite.js, здесь только разметка и переходы.
  */
@@ -62,19 +64,67 @@ const waxId = `wax-${useId()}`
     aria-modal="true"
     :aria-label="`Приглашение на свадьбу ${WEDDING.groomGenitive} и ${WEDDING.brideGenitive}`"
   >
-    <!--
-      Цветные разводы по бумаге конверта и падающие листья.
-      strength=0 — размытые пятна не нужны: под бумагой их всё равно не
-      видно, а поверх они превратили бы конверт в мутное облако.
-    -->
-    <SoftAura :strength="0" />
+    <SoftAura :strength="0.45" />
 
-    <!-- Три задних шва: сходятся в вершине клапана. -->
-    <span class="env__seam env__seam--left" aria-hidden="true" />
-    <span class="env__seam env__seam--right" aria-hidden="true" />
-    <span class="env__seam env__seam--bottom" aria-hidden="true" />
+    <div class="env__stage">
+      <div class="env__paper" aria-hidden="true">
+        <!-- Внутренность конверта: видна, когда клапан откинулся. -->
+        <span class="env__inside" />
 
-    <!-- Письмо. Лежит под клапаном и проявляется, когда тот откинулся. -->
+        <!-- Три передние грани: боковые и нижняя, все сходятся в вершине. -->
+        <span class="env__facet env__facet--left" />
+        <span class="env__facet env__facet--right" />
+        <span class="env__facet env__facet--bottom" />
+
+        <!-- Клапан. Отдельная сцена, чтобы перспектива не задевала остальное. -->
+        <div class="env__scene">
+          <span class="env__flap" />
+        </div>
+
+        <!-- Объём: свет в середине, тень по углам и «карман» под вершиной. -->
+        <span class="env__depth" />
+      </div>
+
+      <!-- Печать. Она же кнопка «открыть». -->
+      <button type="button" class="env__seal" data-envelope-open>
+        <span class="env__seal-ring" aria-hidden="true" />
+        <span class="env__seal-halo" aria-hidden="true" />
+        <svg class="env__seal-wax" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <defs>
+            <!-- Свет падает сверху слева, к краям воск уходит в тень. -->
+            <radialGradient :id="waxId" cx="34%" cy="28%" r="82%">
+              <stop class="env__wax-stop--light" offset="0" />
+              <stop class="env__wax-stop--mid" offset="0.55" />
+              <stop class="env__wax-stop--deep" offset="1" />
+            </radialGradient>
+          </defs>
+          <path class="env__wax-body" :d="wax" :fill="`url(#${waxId})`" />
+          <path class="env__wax-inner" :d="waxInner" />
+          <path class="env__wax-gloss" d="M27 33c5-9 15-14 25-13" fill="none" stroke-linecap="round" />
+        </svg>
+        <span class="env__seal-mono" aria-hidden="true">
+          {{ WEDDING.groom.charAt(0) }}<i>&amp;</i>{{ WEDDING.bride.charAt(0) }}
+        </span>
+        <span class="sr-only">Открыть конверт с приглашением</span>
+      </button>
+
+      <!-- Подписи под конвертом: имена, дата, день недели. -->
+      <div class="env__front" aria-hidden="true">
+        <p class="env__from display grad-text">
+          {{ WEDDING.groom }}<em>&amp;</em>{{ WEDDING.bride }}
+        </p>
+
+        <p class="env__stamp">
+          <span class="env__stamp-rule" />
+          <span class="env__stamp-date">{{ WEDDING.date.human }}</span>
+          <span class="env__stamp-rule" />
+        </p>
+
+        <p class="env__weekday">{{ WEDDING.date.weekday }}</p>
+      </div>
+    </div>
+
+    <!-- Письмо. Поднимается из конверта, когда клапан откинулся. -->
     <div class="env__letter">
       <span class="env__letter-frame" aria-hidden="true" />
 
@@ -113,56 +163,6 @@ const waxId = `wax-${useId()}`
       </button>
     </div>
 
-    <!-- Клапан. Отдельная сцена, чтобы перспектива не задевала остальное. -->
-    <div class="env__scene" aria-hidden="true">
-      <span class="env__flap" />
-    </div>
-
-    <!-- Объём: свет в середине, тень по углам и «карман» под вершиной. -->
-    <span class="env__depth" aria-hidden="true" />
-
-    <!--
-      Всё, что напечатано на конверте под печатью: имена (тем же набором,
-      что и внутри письма), дата и отсчёт. Одним блоком, а не тремя
-      отдельными — иначе пришлось бы вручную складывать отступы.
-    -->
-    <div class="env__front" aria-hidden="true">
-      <p class="env__from display grad-text">
-        {{ WEDDING.groom }}<em>&amp;</em>{{ WEDDING.bride }}
-      </p>
-
-      <p class="env__stamp">
-        <span class="env__stamp-rule" />
-        <span class="env__stamp-date">{{ WEDDING.date.human }}</span>
-        <span class="env__stamp-rule" />
-      </p>
-
-      <p class="env__weekday">{{ WEDDING.date.weekday }}</p>
-    </div>
-
-    <!-- Печать. Она же кнопка «открыть». -->
-    <button type="button" class="env__seal" data-envelope-open>
-      <span class="env__seal-ring" aria-hidden="true" />
-      <span class="env__seal-halo" aria-hidden="true" />
-      <svg class="env__seal-wax" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-        <defs>
-          <!-- Свет падает сверху слева, к краям воск уходит в тень. -->
-          <radialGradient :id="waxId" cx="34%" cy="28%" r="82%">
-            <stop class="env__wax-stop--light" offset="0" />
-            <stop class="env__wax-stop--mid" offset="0.55" />
-            <stop class="env__wax-stop--deep" offset="1" />
-          </radialGradient>
-        </defs>
-        <path class="env__wax-body" :d="wax" :fill="`url(#${waxId})`" />
-        <path class="env__wax-inner" :d="waxInner" />
-        <path class="env__wax-gloss" d="M27 33c5-9 15-14 25-13" fill="none" stroke-linecap="round" />
-      </svg>
-      <span class="env__seal-mono" aria-hidden="true">
-        {{ WEDDING.groom.charAt(0) }}<i>&amp;</i>{{ WEDDING.bride.charAt(0) }}
-      </span>
-      <span class="sr-only">Открыть конверт с приглашением</span>
-    </button>
-
     <button type="button" class="env__skip" data-envelope-skip>Пропустить</button>
   </div>
 </template>
@@ -182,9 +182,7 @@ html.has-js .env {
   display: grid;
   place-items: center;
   overflow: hidden;
-  /* Бумага конверта. Отступов нет намеренно: клапан и швы считают
-     координаты от края экрана. */
-  background: linear-gradient(160deg, var(--card), color-mix(in srgb, var(--gold) 12%, var(--card)));
+  background: var(--bg);
   transition: opacity 0.75s ease;
 }
 
@@ -196,30 +194,15 @@ html.has-js .env.is-done {
 
 <style scoped>
 .env {
+  /** Пропорции взяты у обычного почтового конверта. */
+  --paper-w: min(86vw, 30rem);
+  --paper-h: calc(var(--paper-w) / 1.45);
   /**
-   * Вершина клапана — ровно середина экрана: там же лежит печать.
-   * Именно проценты, а не vh: оверлей растянут на весь экран, и процент
-   * считается от его высоты — без разницы между vh, svh и адресной строкой,
-   * которая на телефоне то появляется, то уезжает.
-   * От этой переменной зависят и швы, и позиция печати, и подписи.
+   * Вершина: точка, где сходятся все четыре грани и куда падает печать.
+   * Чуть ниже середины — как на настоящем конверте.
    */
-  --flap: 50%;
-  /**
-   * Глубина «галочки» клапана — от неё зависит, насколько острый угол.
-   * Считается от ширины (чтобы угол держался около 120° на любом экране)
-   * и подстраховывается высотой, иначе на низком окне клапан провалился бы
-   * ниже своей вершины.
-   */
-  --flap-v: min(30vw, 26vh);
-  /** Линия сгиба верхнего клапана: высота, на которой начинаются скосы. */
-  --flap-fold: calc(var(--flap) - var(--flap-v));
-  /**
-   * Линия сгиба нижнего клапана. Раньше он сходился к вершине прямо от
-   * нижних углов и получался неестественно острым; теперь скос такой же
-   * пологий, как у верхнего.
-   */
-  --flap-fold-bottom: calc(var(--flap) + var(--flap-v));
-  --seal: clamp(128px, 34vw, 190px);
+  --tip: 58%;
+  --seal: calc(var(--paper-w) * 0.26);
 
   display: none;
 }
@@ -229,91 +212,83 @@ html.has-js .env.is-done {
   pointer-events: none;
 }
 
-/* ---------- бумага ---------- */
+/* ---------- конверт ---------- */
+.env__stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.1rem, 4vw, 1.6rem);
+  transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.7s ease;
+}
 
-/**
- * Задние швы конверта: левый и правый идут от верхних углов к вершине
- * клапана, нижний — от неё к нижним углам. Оттенки разные не ради цвета:
- * именно на их стыках читаются линии сгиба. Тонкую тень по сгибу даёт
- * drop-shadow — он повторяет форму, обрезанную clip-path, в отличие от
- * box-shadow, который обвёл бы прямоугольник элемента.
- */
-.env__seam {
+/* Когда письмо вышло, конверт чуть отступает назад. */
+.env.is-opened .env__stage {
+  transform: translateY(4%) scale(0.97);
+}
+
+.env.is-leaving .env__stage {
+  opacity: 0;
+}
+
+.env__paper {
+  position: relative;
+  width: var(--paper-w);
+  height: var(--paper-h);
+  border-radius: clamp(8px, 2.5vw, 14px);
+  overflow: hidden;
+  /* Бумага конверта: тёплая, с лёгким уходом в золото по диагонали. */
+  background: linear-gradient(155deg, var(--card), color-mix(in srgb, var(--gold) 14%, var(--card)));
+  box-shadow: 0 30px 60px -34px rgba(8, 14, 10, 0.75), 0 4px 12px -6px rgba(8, 14, 10, 0.4);
+}
+
+/* Внутренность: под клапаном она темнее самой бумаги. */
+.env__inside {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.14) 55%, transparent 78%);
 }
 
 /**
- * Светлота створок разная — как у сложенной бумаги, которая по-разному
- * ловит свет. Нейтральные подложки (чёрная и белая полупрозрачные) работают
- * в обеих темах, а цветные градиенты только подкрашивают.
- *
- * Тени двойные: первая, без размытия и на пиксель, рисует светлую линию
- * по сгибу — drop-shadow повторяет форму, обрезанную clip-path. Вторая,
- * размытая и тёмная, отодвигает створку от соседней.
+ * Грани конверта. У каждой свой ход света: плоскость без градиента читается
+ * как аппликация, а не как сложенная бумага. Светлая линия по сгибу и мягкая
+ * тень под ним — это drop-shadow, он повторяет форму, обрезанную clip-path.
  */
-.env__seam--left {
-  clip-path: polygon(0 var(--flap-fold), 50% var(--flap), 0 var(--flap-fold-bottom));
-  background-color: rgba(0, 0, 0, 0.12);
-  background-image: linear-gradient(90deg, rgba(255, 248, 234, 0.08), rgba(0, 0, 0, 0.12) 88%),
-    linear-gradient(100deg, color-mix(in srgb, var(--sage) 14%, transparent), transparent 66%);
-  filter: drop-shadow(1.5px 0 0 rgba(255, 246, 228, 0.18))
-    drop-shadow(7px 0 16px rgba(8, 14, 10, 0.55));
+.env__facet {
+  position: absolute;
+  inset: 0;
 }
 
-.env__seam--right {
-  clip-path: polygon(100% var(--flap-fold), 50% var(--flap), 100% var(--flap-fold-bottom));
-  background-color: rgba(0, 0, 0, 0.12);
-  background-image: linear-gradient(270deg, rgba(255, 248, 234, 0.08), rgba(0, 0, 0, 0.12) 88%),
-    linear-gradient(260deg, color-mix(in srgb, var(--rose) 15%, transparent), transparent 66%);
-  filter: drop-shadow(-1.5px 0 0 rgba(255, 246, 228, 0.18))
-    drop-shadow(-7px 0 16px rgba(8, 14, 10, 0.55));
+.env__facet--left {
+  clip-path: polygon(0 0, 50% var(--tip), 0 100%);
+  background-image: linear-gradient(90deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.16) 92%),
+    linear-gradient(120deg, color-mix(in srgb, var(--sage) 16%, transparent), transparent 70%);
+  filter: drop-shadow(1.5px 0 0 rgba(255, 246, 228, 0.16))
+    drop-shadow(6px 0 12px rgba(8, 14, 10, 0.5));
 }
 
-/* Нижняя створка лежит поверх боковых: она светлее, а тень падает вверх. */
-.env__seam--bottom {
-  clip-path: polygon(
-    0 var(--flap-fold-bottom),
-    50% var(--flap),
-    100% var(--flap-fold-bottom),
-    100% 100%,
-    0 100%
-  );
-  background-color: rgba(255, 248, 234, 0.09);
-  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.09), rgba(0, 0, 0, 0.14) 90%),
+.env__facet--right {
+  clip-path: polygon(100% 0, 50% var(--tip), 100% 100%);
+  background-image: linear-gradient(270deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.16) 92%),
+    linear-gradient(240deg, color-mix(in srgb, var(--rose) 16%, transparent), transparent 70%);
+  filter: drop-shadow(-1.5px 0 0 rgba(255, 246, 228, 0.16))
+    drop-shadow(-6px 0 12px rgba(8, 14, 10, 0.5));
+}
+
+/* Нижняя грань лежит поверх боковых: она светлее, а тень падает вверх. */
+.env__facet--bottom {
+  clip-path: polygon(0 100%, 50% var(--tip), 100% 100%);
+  background-color: rgba(255, 248, 234, 0.08);
+  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.16) 95%),
     linear-gradient(0deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
-  filter: drop-shadow(0 -1.5px 0 rgba(255, 246, 228, 0.24))
-    drop-shadow(0 -9px 20px rgba(8, 14, 10, 0.6));
-}
-
-/**
- * Слой объёма поверх бумаги, но под печатью и письмом.
- *   - первый градиент: тень в «кармане», куда упирается вершина клапана;
- *   - второй: виньетка, свет в середине и затемнение к углам. Без неё
- *     конверт остаётся плоской выкройкой, как бы ни были нарисованы сгибы.
- */
-.env__depth {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 50% var(--flap),
-      rgba(8, 14, 10, 0.34),
-      rgba(8, 14, 10, 0.12) 14%,
-      transparent 30%
-    ),
-    radial-gradient(125% 88% at 50% 42%, transparent 38%, rgba(8, 14, 10, 0.45) 100%);
+  filter: drop-shadow(0 -1.5px 0 rgba(255, 246, 228, 0.22))
+    drop-shadow(0 -8px 16px rgba(8, 14, 10, 0.55));
 }
 
 /* ---------- клапан ---------- */
 .env__scene {
   position: absolute;
   inset: 0;
-  z-index: 2;
-  perspective: 1700px;
+  perspective: 1200px;
   /* Смотрим на сгиб сверху — так откидывание выглядит естественным. */
   perspective-origin: 50% 0;
   pointer-events: none;
@@ -321,47 +296,52 @@ html.has-js .env.is-done {
 
 .env__flap {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--flap);
-  /* Не «галочка» во всю высоту, а настоящий клапан: ровный верх и
-     неглубокий скос к вершине. Иначе на узком экране угол выходит острым. */
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% calc(100% - var(--flap-v)),
-    50% 100%,
-    0 calc(100% - var(--flap-v))
-  );
-  /* Верхняя створка ловит больше света, поэтому она самая светлая. */
-  background-color: rgba(255, 248, 234, 0.06);
-  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.13) 92%),
+  inset: 0;
+  /* Полный треугольник от верхних углов к вершине — как у почтового конверта. */
+  clip-path: polygon(0 0, 100% 0, 50% var(--tip));
+  background-color: rgba(0, 0, 0, 0.2);
+  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.14), rgba(0, 0, 0, 0.14) 92%),
     linear-gradient(
-    172deg,
-    color-mix(in srgb, var(--gold) 26%, var(--card)),
-    color-mix(in srgb, var(--sage) 22%, var(--card))
-  );
+      172deg,
+      color-mix(in srgb, var(--gold) 22%, var(--card)),
+      color-mix(in srgb, var(--sage) 20%, var(--card))
+    );
   transform-origin: top center;
-  /* drop-shadow, а не box-shadow: тень должна повторять треугольник,
-     обрезанный clip-path, а не рамку элемента. */
-  filter: drop-shadow(0 1.5px 0 rgba(255, 246, 228, 0.26))
-    drop-shadow(0 20px 32px rgba(8, 14, 10, 0.62));
+  filter: drop-shadow(0 1.5px 0 rgba(255, 246, 228, 0.22))
+    drop-shadow(0 12px 20px rgba(8, 14, 10, 0.55));
   /* Долгий ход с мягким входом и выходом: клапан должен откидываться, как
      бумага, а не отщёлкиваться. */
-  transition: transform 1.7s cubic-bezier(0.3, 0.06, 0.2, 1), opacity 0.6s ease;
+  transition: transform 1.7s cubic-bezier(0.3, 0.06, 0.2, 1);
 }
 
 .env.is-opened .env__flap {
-  transform: rotateX(-168deg);
+  transform: rotateX(-172deg);
+}
+
+/**
+ * Слой объёма поверх бумаги, но под печатью: свет собирается у вершины,
+ * углы уходят в тень, под самой вершиной лежит «карман».
+ */
+.env__depth {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% var(--tip),
+      rgba(8, 14, 10, 0.3),
+      rgba(8, 14, 10, 0.1) 16%,
+      transparent 34%
+    ),
+    radial-gradient(120% 90% at 50% 46%, transparent 42%, rgba(8, 14, 10, 0.4) 100%);
 }
 
 /* ---------- печать ---------- */
 .env__seal {
   position: absolute;
-  top: calc(var(--flap) - var(--seal) / 2);
+  top: calc(var(--paper-h) * 0.58 - var(--seal) / 2);
   left: calc(50% - var(--seal) / 2);
-  z-index: 4;
+  z-index: 2;
   display: grid;
   place-items: center;
   width: var(--seal);
@@ -370,9 +350,8 @@ html.has-js .env.is-done {
   border: 0;
   background: none;
   cursor: pointer;
-  /* Тень тоже вне темы: на тёмном фоне светлый акцент давал бледный ореол
-     вместо тени, и печать будто парила отдельно от бумаги. */
-  filter: drop-shadow(0 10px 18px rgba(58, 28, 12, 0.42))
+  /* Тень вне темы: на тёмном фоне светлый акцент давал бы ореол, а не тень. */
+  filter: drop-shadow(0 8px 14px rgba(58, 28, 12, 0.45))
     drop-shadow(0 2px 3px rgba(58, 28, 12, 0.3));
   transition: transform 0.75s cubic-bezier(0.32, 1.15, 0.6, 1), opacity 0.6s ease 0.15s;
 }
@@ -471,7 +450,7 @@ html.has-js .env.is-done {
  */
 .env__seal-ring {
   position: absolute;
-  inset: calc(var(--seal) * -0.07);
+  inset: calc(var(--seal) * -0.09);
   border: 1px solid color-mix(in srgb, var(--accent-ink) 55%, transparent);
   border-radius: 50%;
   opacity: 0;
@@ -509,21 +488,13 @@ html.has-js .env.is-done {
   }
 }
 
-/* ---------- надписи на конверте ---------- */
-
-/* Блок начинается сразу под печатью и тянется вниз по центру. */
+/* ---------- подписи под конвертом ---------- */
 .env__front {
-  position: absolute;
-  top: calc(var(--flap) + var(--seal) * 0.62);
-  left: 0;
-  right: 0;
-  /* Над слоем объёма: виньетка не должна съедать читаемость надписей. */
-  z-index: 3;
   display: grid;
   justify-items: center;
-  gap: clamp(0.5rem, 2.5vw, 0.9rem);
-  padding-inline: clamp(1.25rem, 6vw, 2rem);
-  transition: opacity 0.4s ease;
+  gap: clamp(0.4rem, 2vw, 0.7rem);
+  padding-inline: clamp(1rem, 5vw, 2rem);
+  transition: opacity 0.5s ease;
 }
 
 .env.is-cracking .env__front {
@@ -532,7 +503,7 @@ html.has-js .env.is-done {
 
 .env__from {
   padding-inline: 0.06em;
-  font-size: clamp(1.6rem, 7vw, 2.6rem);
+  font-size: clamp(1.5rem, 6.5vw, 2.3rem);
 }
 
 .env__from em {
@@ -554,7 +525,7 @@ html.has-js .env.is-done {
   flex: none;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: clamp(1rem, 3.8vw, 1.25rem);
+  font-size: clamp(0.95rem, 3.6vw, 1.2rem);
   letter-spacing: 0.06em;
   white-space: nowrap;
   color: var(--accent-ink);
@@ -575,15 +546,10 @@ html.has-js .env.is-done {
   color: var(--ink-soft);
 }
 
-.env.is-cracking .env__from {
-  opacity: 0;
-}
-
 /* ---------- письмо ---------- */
 .env__letter {
-  position: relative;
-  /* Выше слоя объёма: виньетка тушит бумагу, но не само письмо. */
-  z-index: 3;
+  position: absolute;
+  z-index: 4;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -599,17 +565,18 @@ html.has-js .env.is-done {
     radial-gradient(70% 50% at 50% 0%, color-mix(in srgb, var(--rose) 13%, transparent), transparent 70%),
     radial-gradient(60% 45% at 50% 100%, color-mix(in srgb, var(--sage) 15%, transparent), transparent 72%),
     linear-gradient(170deg, var(--bg), color-mix(in srgb, var(--gold) 7%, var(--bg)));
-  box-shadow: 0 26px 55px -28px color-mix(in srgb, var(--ink) 55%, transparent);
+  box-shadow: 0 26px 55px -28px rgba(8, 14, 10, 0.7);
   opacity: 0;
-  transform: translateY(34px) scale(0.95);
-  /* Письмо выходит дольше клапана и с задержкой: сначала открылось, потом
-     показалось содержимое. */
-  transition: opacity 1.1s ease 0.25s, transform 1.3s cubic-bezier(0.22, 0.61, 0.36, 1) 0.25s;
+  /* Стартует ниже и мельче — будто ещё лежит в конверте. */
+  transform: translateY(14%) scale(0.9);
+  transition: opacity 1.1s ease 0.35s, transform 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.35s;
+  pointer-events: none;
 }
 
 .env.is-opened .env__letter {
   opacity: 1;
   transform: none;
+  pointer-events: auto;
 }
 
 /* Тонкая золотая рамка внутри письма. */
@@ -625,8 +592,8 @@ html.has-js .env.is-done {
 .env__letter > *:not(.env__letter-frame) {
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 0.7s ease calc(var(--d, 0ms) + 350ms),
-    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) calc(var(--d, 0ms) + 350ms);
+  transition: opacity 0.7s ease calc(var(--d, 0ms) + 450ms),
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) calc(var(--d, 0ms) + 450ms);
 }
 
 .env.is-opened .env__letter > *:not(.env__letter-frame) {
@@ -722,6 +689,7 @@ html.has-js .env.is-done {
 @media (prefers-reduced-motion: reduce) {
   .env__seal,
   .env__flap,
+  .env__stage,
   .env__letter,
   .env__letter > * {
     transition-duration: 0.2s;
@@ -730,6 +698,10 @@ html.has-js .env.is-done {
   .env.is-opened .env__flap {
     transform: none;
     opacity: 0;
+  }
+
+  .env.is-opened .env__stage {
+    transform: none;
   }
 }
 </style>
