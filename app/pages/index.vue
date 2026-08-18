@@ -50,8 +50,8 @@ import { WEDDING } from '~/utils/wedding'
         <SuperGame />
       </SectionShell>
 
-      <SectionShell tone="soft" divider eyebrow="Пожелания" title="Несколько просьб">
-        <WishesBlock />
+      <SectionShell tone="soft" divider eyebrow="Пожелания" title="Небольшая просьба">
+        <WishBlock />
       </SectionShell>
 
       <SectionShell id="rsvp" eyebrow="Ответ" title="Будете с нами?">
