@@ -26,6 +26,10 @@ useSeoMeta({
  * отдельно от основного скрипта, который стоит перед </body>:
  *   - has-js разрешает CSS прятать секции под анимацию появления;
  *   - is-sealed запирает прокрутку страницы под открыткой-заставкой;
+ *   - восстановление прокрутки отключается: после перезагрузки браузер вернул
+ *     бы гостя на середину страницы, и лендинг открылся бы из-под конверта не
+ *     сверху. Наверх его ставит и invite.js при уходе с заставки, но здесь —
+ *     до того, как браузер вообще успеет что-то восстановить;
  *   - тема ставится здесь же: по умолчанию тёмная, а если гость уже выбирал
  *     светлую — она. Позже было бы поздно: страница успела бы мигнуть.
  *
@@ -35,6 +39,7 @@ useSeoMeta({
  */
 const bootstrap = `(function(){var r=document.documentElement;
 r.classList.add('has-js','is-sealed');
+try{if('scrollRestoration' in history)history.scrollRestoration='manual'}catch(e){}
 var t='dark';try{if(localStorage.getItem('wedding-theme')==='light')t='light'}catch(e){}
 r.setAttribute('data-theme',t);
 setTimeout(function(){

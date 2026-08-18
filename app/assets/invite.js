@@ -90,7 +90,7 @@
   /* ------------------------------------------------------------------
      Открытка-заставка.
 
-     Порядок состояний: is-cracking (печать отлетает) → is-opened
+     Порядок состояний: is-cracking (печать растворяется) → is-opened
      (створки распахнулись, виден разворот) → is-leaving → is-done.
      Класс is-sealed на <html> держит страницу под открыткой
      непрокручиваемой; его ставит бутстрап-скрипт в <head>, а снимаем
@@ -101,6 +101,22 @@
       root.classList.remove('is-sealed')
       // Под этим классом оживает hero: он ждал, пока откроют открытку.
       root.classList.add('is-entered')
+    }
+
+    /**
+     * Лендинг всегда начинается сверху. Пока гость смотрел на открытку,
+     * страница под ней могла оказаться прокрученной: браузер восстановил
+     * позицию после перезагрузки или ушёл по якорю из ссылки. Прыжок делаем
+     * мгновенным — у html стоит scroll-behavior: smooth, и иначе страница
+     * поехала бы к верху сама, уже на виду у гостя.
+     */
+    function scrollToTop() {
+      var behavior = root.style.scrollBehavior
+      root.style.scrollBehavior = 'auto'
+      if (typeof window.scrollTo === 'function') window.scrollTo(0, 0)
+      root.scrollTop = 0
+      if (document.body) document.body.scrollTop = 0
+      root.style.scrollBehavior = behavior
     }
 
     var env = document.querySelector('[data-envelope]')
@@ -128,19 +144,19 @@
       }
     }
 
-    /** Раскрываем: печать отлетает, створки расходятся. */
+    /** Раскрываем: печать растворяется, за ней расходятся створки. */
     function open() {
       if (state !== 'sealed') return
       state = 'cracking'
       env.classList.add('is-cracking')
 
-      // Пауза между «печать отлетела» и «клапан пошёл»: без неё оба
-      // движения сливаются в один рывок.
+      // Клапан ждёт, пока воск растворится до конца (1.2s в CSS печати):
+      // сначала печать тает, и только потом конверт начинает открываться.
       later(function () {
         state = 'opened'
         env.classList.add('is-opened')
         focusSafely(enterButton)
-      }, prefersReducedMotion ? 60 : 420)
+      }, prefersReducedMotion ? 60 : 1300)
     }
 
     /** Уходим со заставки на страницу. instant — без анимации. */
@@ -150,6 +166,8 @@
       forEach(timers, clearTimeout)
       timers = []
       unlock()
+      // Прокручиваем, пока оверлей ещё на месте: гость не видит перескока.
+      scrollToTop()
 
       if (instant || prefersReducedMotion) {
         env.classList.add('is-leaving', 'is-done')

@@ -7,8 +7,8 @@ import { WEDDING } from '~/utils/wedding'
  *
  * Гость видит запечатанный конверт: классическая геометрия — четыре грани
  * сходятся в одной точке, сверху клапан, в его вершине сургучная печать с
- * мягко моргающим кольцом. По нажатию печать отлетает, клапан откидывается
- * назад, и из конверта поднимается письмо с кнопкой входа.
+ * мягко моргающим кольцом. По нажатию печать растворяется на месте, затем
+ * клапан откидывается назад, и из конверта поднимается письмо с кнопкой входа.
  *
  * Как это устроено:
  *   - оверлей есть в разметке всегда, но CSS показывает его ТОЛЬКО под
@@ -384,7 +384,10 @@ html.has-js .env.is-done {
   /* Тень вне темы: на тёмном фоне светлый акцент давал бы ореол, а не тень. */
   filter: drop-shadow(0 8px 14px rgba(58, 28, 12, 0.45))
     drop-shadow(0 2px 3px rgba(58, 28, 12, 0.3));
-  transition: transform 0.75s cubic-bezier(0.32, 1.15, 0.6, 1), opacity 0.6s ease 0.15s;
+  /* transform остался только для наведения; исчезновение ведёт opacity, и
+     без задержки: воск должен начать таять в момент нажатия. Долгая
+     ease-in-out — чтобы печать таяла на глазах, а не пропадала мгновенно. */
+  transition: transform 0.75s cubic-bezier(0.32, 1.15, 0.6, 1), opacity 1.2s ease-in-out;
 }
 
 .env__seal:hover {
@@ -405,8 +408,13 @@ html.has-js .env.is-done {
   border-radius: 50%;
 }
 
+/**
+ * Печать не улетает вниз, а растворяется на месте: падение читалось как
+ * «что-то отвалилось», тогда как сургуч должен просто растаять. transform
+ * гасим явно — иначе на мышке остался бы висеть scale от :hover.
+ */
 .env.is-cracking .env__seal {
-  transform: translateY(34px) rotate(13deg) scale(0.8);
+  transform: none;
   opacity: 0;
   pointer-events: none;
 }
@@ -504,7 +512,7 @@ html.has-js .env.is-done {
 }
 
 .env.is-cracking .env__seal-halo {
-  animation: halo 0.85s ease-out forwards;
+  animation: halo 1.2s ease-out forwards;
 }
 
 @keyframes seal-blink {
