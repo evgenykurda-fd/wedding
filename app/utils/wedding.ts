@@ -39,6 +39,13 @@ export interface TimelineItem {
   accent?: boolean
 }
 
+export interface DrinkOption {
+  id: string
+  label: string
+  /** Уточнение: сорта или виды. Показывается, только если пункт отмечен. */
+  kinds?: { title: string; items: readonly string[] }
+}
+
 export interface Wish {
   title: string
   text: string
@@ -262,20 +269,31 @@ export const WEDDING = {
    */
   drinks: {
     title: 'Что будете пить?',
-    note: 'Отметьте всё, что подойдёт, — так мы точнее рассчитаем бар.',
+    note: 'Можно выбрать несколько вариантов - так мы точнее рассчитаем бар.',
+    /**
+     * Тип задан явно: подварианты есть не у каждого пункта, и без общего
+     * типа обращение к option.kinds стало бы ошибкой на объединении литералов.
+     */
     options: [
-      { id: 'strong', label: 'Крепкий' },
-      { id: 'wine', label: 'Вино' },
+      {
+        id: 'strong',
+        label: 'Крепкий алкоголь',
+        kinds: {
+          title: 'Что именно?',
+          items: ['Водка', 'Коньяк', 'Виски', 'Бренди', 'Ром', 'Джин'],
+        },
+      },
+      {
+        id: 'wine',
+        label: 'Вино',
+        kinds: {
+          title: 'Какое вино?',
+          items: ['Красное сухое', 'Красное полусладкое', 'Белое сухое', 'Белое полусладкое'],
+        },
+      },
       { id: 'sparkling', label: 'Игристое' },
       { id: 'soft', label: 'Без алкоголя' },
-    ],
-    wineTitle: 'Какое вино?',
-    wines: [
-      { id: 'red-dry', label: 'Красное сухое' },
-      { id: 'red-semi', label: 'Красное полусладкое' },
-      { id: 'white-dry', label: 'Белое сухое' },
-      { id: 'white-semi', label: 'Белое полусладкое' },
-    ],
+    ] as readonly DrinkOption[],
   },
 
   /**

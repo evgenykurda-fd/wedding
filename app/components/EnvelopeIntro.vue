@@ -81,6 +81,21 @@ const waxId = `wax-${useId()}`
           <span class="env__flap" />
         </div>
 
+        <!--
+          Линии сгибов. Рисуются отдельно, а не рождаются из стыка заливок:
+          так все четыре диагонали одинаково заметны, а сами грани могут
+          оставаться почти одного тона — иначе конверт распадается на резкие
+          треугольники. preserveAspectRatio="none" растягивает сетку под
+          конверт, а non-scaling-stroke держит линию в один пиксель.
+        -->
+        <svg class="env__folds" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path
+            class="env__fold"
+            vector-effect="non-scaling-stroke"
+            d="M0 0 50 58 100 0M0 100 50 58 100 100"
+          />
+        </svg>
+
         <!-- Объём: свет в середине, тень по углам и «карман» под вершиной. -->
         <span class="env__depth" />
       </div>
@@ -260,28 +275,25 @@ html.has-js .env.is-done {
 
 .env__facet--left {
   clip-path: polygon(0 0, 50% var(--tip), 0 100%);
-  background-image: linear-gradient(90deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.16) 92%),
+  background-image: linear-gradient(90deg, rgba(255, 248, 234, 0.06), rgba(0, 0, 0, 0.09) 92%),
     linear-gradient(120deg, color-mix(in srgb, var(--sage) 16%, transparent), transparent 70%);
-  filter: drop-shadow(1.5px 0 0 rgba(255, 246, 228, 0.16))
-    drop-shadow(6px 0 12px rgba(8, 14, 10, 0.5));
+  filter: drop-shadow(5px 0 12px rgba(8, 14, 10, 0.4));
 }
 
 .env__facet--right {
   clip-path: polygon(100% 0, 50% var(--tip), 100% 100%);
-  background-image: linear-gradient(270deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.16) 92%),
+  background-image: linear-gradient(270deg, rgba(255, 248, 234, 0.06), rgba(0, 0, 0, 0.09) 92%),
     linear-gradient(240deg, color-mix(in srgb, var(--rose) 16%, transparent), transparent 70%);
-  filter: drop-shadow(-1.5px 0 0 rgba(255, 246, 228, 0.16))
-    drop-shadow(-6px 0 12px rgba(8, 14, 10, 0.5));
+  filter: drop-shadow(-5px 0 12px rgba(8, 14, 10, 0.4));
 }
 
 /* Нижняя грань лежит поверх боковых: она светлее, а тень падает вверх. */
 .env__facet--bottom {
   clip-path: polygon(0 100%, 50% var(--tip), 100% 100%);
-  background-color: rgba(255, 248, 234, 0.08);
-  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.1), rgba(0, 0, 0, 0.16) 95%),
+  background-color: rgba(255, 248, 234, 0.045);
+  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.07), rgba(0, 0, 0, 0.1) 95%),
     linear-gradient(0deg, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
-  filter: drop-shadow(0 -1.5px 0 rgba(255, 246, 228, 0.22))
-    drop-shadow(0 -8px 16px rgba(8, 14, 10, 0.55));
+  filter: drop-shadow(0 -6px 14px rgba(8, 14, 10, 0.45));
 }
 
 /* ---------- клапан ---------- */
@@ -299,16 +311,15 @@ html.has-js .env.is-done {
   inset: 0;
   /* Полный треугольник от верхних углов к вершине — как у почтового конверта. */
   clip-path: polygon(0 0, 100% 0, 50% var(--tip));
-  background-color: rgba(0, 0, 0, 0.2);
-  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.14), rgba(0, 0, 0, 0.14) 92%),
+  background-color: rgba(0, 0, 0, 0.06);
+  background-image: linear-gradient(180deg, rgba(255, 248, 234, 0.09), rgba(0, 0, 0, 0.08) 92%),
     linear-gradient(
       172deg,
       color-mix(in srgb, var(--gold) 22%, var(--card)),
       color-mix(in srgb, var(--sage) 20%, var(--card))
     );
   transform-origin: top center;
-  filter: drop-shadow(0 1.5px 0 rgba(255, 246, 228, 0.22))
-    drop-shadow(0 12px 20px rgba(8, 14, 10, 0.55));
+  filter: drop-shadow(0 10px 18px rgba(8, 14, 10, 0.45));
   /* Долгий ход с мягким входом и выходом: клапан должен откидываться, как
      бумага, а не отщёлкиваться. */
   transition: transform 1.7s cubic-bezier(0.3, 0.06, 0.2, 1);
@@ -316,6 +327,22 @@ html.has-js .env.is-done {
 
 .env.is-opened .env__flap {
   transform: rotateX(-172deg);
+}
+
+/* Линии сгибов: светлая волосинка по ребру и тёмная тень сразу под ней. */
+.env__folds {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.env__fold {
+  fill: none;
+  stroke: rgba(255, 248, 234, 0.22);
+  stroke-width: 1;
+  filter: drop-shadow(0 1px 1px rgba(8, 14, 10, 0.55));
 }
 
 /**

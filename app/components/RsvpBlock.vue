@@ -20,6 +20,9 @@ const { contacts } = WEDDING
  */
 const direct = Boolean(WEDDING.rsvpBot.token && WEDDING.rsvpBot.chatId)
 
+/** Пункты опроса с уточнениями: под каждым свой ряд вариантов. */
+const drinksWithKinds = WEDDING.drinks.options.filter((option) => option.kinds)
+
 /** «1 гость», «2 гостя», «5 гостей» — список числом и словом сразу понятнее. */
 const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
   const value = index + 1
@@ -89,19 +92,24 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
         </div>
         <p class="rsvp__note">{{ WEDDING.drinks.note }}</p>
 
-        <!-- Вид вина спрашиваем, только если вино отмечено. -->
-        <div class="rsvp__wines is-off" data-rsvp-wine-field>
-          <p class="rsvp__label" id="rsvp-wine-label">{{ WEDDING.drinks.wineTitle }}</p>
-          <div class="rsvp__pills" role="group" aria-labelledby="rsvp-wine-label">
+        <!-- Уточнения. Каждое показывается, только если отмечен его пункт. -->
+        <div
+          v-for="option in drinksWithKinds"
+          :key="option.id"
+          class="rsvp__kinds is-off"
+          :data-rsvp-sub="option.id"
+        >
+          <p class="rsvp__label" :id="`rsvp-kinds-${option.id}`">{{ option.kinds!.title }}</p>
+          <div class="rsvp__pills" role="group" :aria-labelledby="`rsvp-kinds-${option.id}`">
             <button
-              v-for="wine in WEDDING.drinks.wines"
-              :key="wine.id"
+              v-for="item in option.kinds!.items"
+              :key="item"
               type="button"
               class="btn rsvp__pill"
-              :data-rsvp-wine="wine.id"
+              :data-rsvp-sub-option="option.id"
               aria-pressed="false"
             >
-              {{ wine.label }}
+              {{ item }}
             </button>
           </div>
         </div>
@@ -309,8 +317,8 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
   font-weight: 600;
 }
 
-/* Вид вина: появляется, когда отмечено «вино». Класс снимает invite.js. */
-.rsvp__wines {
+/* Уточнение к пункту опроса: появляется, когда пункт отмечен. Класс снимает invite.js. */
+.rsvp__kinds {
   display: grid;
   gap: 0.45rem;
   margin-top: 0.35rem;
@@ -318,7 +326,7 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
   border-top: 1px solid var(--line);
 }
 
-.rsvp__wines.is-off {
+.rsvp__kinds.is-off {
   display: none;
 }
 
