@@ -138,11 +138,12 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
       <a
         class="btn btn--solid rsvp__send"
         data-rsvp-send="telegram"
+        data-rsvp-sent-label="Ответ отправлен"
         :href="contacts.telegram"
         target="_blank"
         rel="noopener noreferrer"
       >
-        <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg class="btn__icon rsvp__send-plane" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path
             d="M21.3 4.3 2.9 11.4c-.9.3-.9 1.5.1 1.7l4.3 1.3 1.6 4.9c.3.8 1.3 1 1.9.4l2.3-2.2 4.3 3.2c.7.5 1.6.1 1.8-.7l3-14.4c.2-.9-.7-1.6-1.5-1.3z"
             fill="none"
@@ -152,12 +153,28 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
           />
           <path d="M7.3 14.4 18 7.2l-7.6 8.3-.3 3.3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
         </svg>
-        Отправить ответ в Telegram
+
+        <!-- Галочка вместо самолётика, когда ответ уже улетел. -->
+        <svg class="btn__icon rsvp__send-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M20 6.6 9.7 17 4.5 12.2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <!-- Подпись отдельным элементом: скрипт меняет только её, не тронув иконки. -->
+        <span data-rsvp-send-label>Отправить ответ в Telegram</span>
       </a>
 
       <button type="button" class="btn rsvp__copy" data-rsvp-copy>Скопировать текст</button>
 
-      <p class="rsvp__done" data-rsvp-done>Ответ отправлен. Спасибо!</p>
+      <!-- Появляется, когда ответ отправлен: расколдовывает форму, если гость
+           хочет поправить ответ. Класс снимает invite.js. -->
+      <button type="button" class="btn rsvp__edit is-off" data-rsvp-edit>Внести изменения</button>
 
       <!-- Ник вынесен из строки в ссылку: по нему можно сразу открыть чат. -->
       <p class="rsvp__hint">
@@ -396,20 +413,59 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
   font-size: 0.86rem;
 }
 
-/* Появляется, когда ответ действительно ушёл: класс ставит invite.js. */
-.rsvp__done {
+/* Ответ отправлен — копировать нечего. Класс ставит invite.js. */
+.rsvp__copy.is-off {
   display: none;
-  padding: 0.6rem 0.9rem;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--sage) 14%, transparent);
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--sage-ink);
-  text-align: center;
 }
 
-.rsvp__done.is-on {
+/**
+ * Ответ отправлен: кнопка перестаёт быть действием и просто держит подпись.
+ * Заливку меняем на спокойную зелёную — так видно, что это уже не призыв
+ * нажать, а состояние. pointer-events снимает и наведение, и повторный клик.
+ */
+.rsvp__send.is-sent {
+  background: color-mix(in srgb, var(--sage) 16%, var(--card)) padding-box,
+    linear-gradient(135deg, var(--sage), var(--gold)) border-box;
+  color: var(--sage-ink);
+  box-shadow: none;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Галочка ждёт своей минуты, самолётик уходит вместе с призывом нажать. */
+.rsvp__send-check {
+  display: none;
+}
+
+.rsvp__send.is-sent .rsvp__send-plane {
+  display: none;
+}
+
+.rsvp__send.is-sent .rsvp__send-check {
   display: block;
+}
+
+/**
+ * Пока ответ отправлен, форма только читается: поля и кнопки выключены
+ * по-настоящему (disabled), а не притворяются — иначе с клавиатуры в них
+ * всё ещё можно было бы попасть.
+ */
+.rsvp__form :disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Возврат к правке — спокойная кнопка, как «скопировать текст». */
+.rsvp__edit {
+  width: 100%;
+  min-height: 44px;
+  margin-top: -0.5rem;
+  font-size: 0.86rem;
+}
+
+.rsvp__edit.is-off {
+  display: none;
 }
 
 .rsvp__hint {

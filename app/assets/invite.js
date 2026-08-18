@@ -505,7 +505,8 @@
     var preview = document.querySelector('[data-rsvp-preview]')
     var sendLink = document.querySelector('[data-rsvp-send]')
     var copyButton = document.querySelector('[data-rsvp-copy]')
-    var doneLine = document.querySelector('[data-rsvp-done]')
+    var editButton = document.querySelector('[data-rsvp-edit]')
+    var sendLabel = document.querySelector('[data-rsvp-send-label]')
 
     if (!answerButtons.length && !preview) return
 
@@ -659,6 +660,60 @@
       })
     })
 
+    /* ----------------------------------------------------------------
+       Состояние «ответ отправлен».
+
+       Пока ответ у нас, форму замораживаем: поля и кнопки выключены
+       по-настоящему (disabled), а кнопка отправки вместо призыва держит
+       подпись «Ответ отправлен» с галочкой. Гость не остаётся запертым —
+       кнопка «Внести изменения» возвращает форму в рабочее состояние, и
+       ответ можно отправить заново.
+       ---------------------------------------------------------------- */
+    var sent = false
+    /** Обе подписи приходят из разметки: тексты живут рядом с вёрсткой. */
+    var labelIdle = sendLabel ? sendLabel.textContent : ''
+    var labelSent = sendLink ? sendLink.getAttribute('data-rsvp-sent-label') : ''
+
+    /** Всё, что гость может нажать или заполнить, — кроме самой отправки. */
+    function eachControl(fn) {
+      forEach([nameInput, guestsSelect, noteInput], function (el) {
+        if (el) fn(el)
+      })
+      forEach(answerButtons, fn)
+      forEach(drinkButtons, fn)
+      forEach(subButtons, fn)
+    }
+
+    function setSent(value) {
+      sent = value
+      eachControl(function (el) {
+        el.disabled = value
+      })
+
+      // Ссылка не умеет быть disabled: помечаем для читалок и убираем из
+      // табуляции, а клики отсекает и обработчик, и pointer-events в CSS.
+      if (sendLink) {
+        sendLink.classList.toggle('is-sent', value)
+        sendLink.setAttribute('aria-disabled', value ? 'true' : 'false')
+        if (value) sendLink.setAttribute('tabindex', '-1')
+        else sendLink.removeAttribute('tabindex')
+      }
+
+      if (sendLabel) sendLabel.textContent = value ? labelSent : labelIdle
+
+      // Копировать уже нечего: ответ у нас. Кнопку убираем совсем, а её место
+      // занимает «Внести изменения».
+      if (copyButton) copyButton.classList.toggle('is-off', value)
+      if (editButton) editButton.classList.toggle('is-off', !value)
+    }
+
+    if (editButton) {
+      editButton.addEventListener('click', function () {
+        setSent(false)
+        say('Форма снова открыта - поправьте ответ и отправьте заново.')
+      })
+    }
+
     /**
      * Если прямая отправка не удалась, следующий клик по кнопке уже не
      * перехватываем: пусть работает как обычная ссылка и открывает чат.
@@ -669,6 +724,13 @@
 
     if (sendLink) {
       sendLink.addEventListener('click', function (event) {
+        // Ответ уже у нас: пока гость не нажал «Внести изменения», кнопка
+        // ничего не делает — ни отправки, ни перехода в чат.
+        if (sent) {
+          event.preventDefault()
+          return
+        }
+
         var message = buildMessage()
 
         if (directBroken) {
@@ -679,8 +741,8 @@
 
         var sending = sendToBot(message, function (ok) {
           if (ok) {
-            if (doneLine) doneLine.classList.add('is-on')
-            say('Ответ отправлен. Спасибо!')
+            setSent(true)
+            say('Спасибо! Мы получили ваш ответ.')
             return
           }
 
