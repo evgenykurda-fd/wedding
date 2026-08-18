@@ -71,6 +71,53 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
         <p class="rsvp__note">Считайте себя и всех, кто приедет с вами, - вместе с детьми.</p>
       </div>
 
+      <!-- Опрос про напитки. Прячется вместе с числом гостей, если гость
+           выбрал «не смогу». -->
+      <div class="rsvp__field" data-rsvp-drinks-field>
+        <p class="rsvp__label" id="rsvp-drinks-label">{{ WEDDING.drinks.title }}</p>
+        <div class="rsvp__pills" role="group" aria-labelledby="rsvp-drinks-label">
+          <button
+            v-for="option in WEDDING.drinks.options"
+            :key="option.id"
+            type="button"
+            class="btn rsvp__pill"
+            :data-rsvp-drink="option.id"
+            aria-pressed="false"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <p class="rsvp__note">{{ WEDDING.drinks.note }}</p>
+
+        <!-- Вид вина спрашиваем, только если вино отмечено. -->
+        <div class="rsvp__wines is-off" data-rsvp-wine-field>
+          <p class="rsvp__label" id="rsvp-wine-label">{{ WEDDING.drinks.wineTitle }}</p>
+          <div class="rsvp__pills" role="group" aria-labelledby="rsvp-wine-label">
+            <button
+              v-for="wine in WEDDING.drinks.wines"
+              :key="wine.id"
+              type="button"
+              class="btn rsvp__pill"
+              :data-rsvp-wine="wine.id"
+              aria-pressed="false"
+            >
+              {{ wine.label }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rsvp__field">
+        <label class="rsvp__label" for="rsvp-note">Пожелания по блюдам</label>
+        <textarea
+          id="rsvp-note"
+          data-rsvp-note
+          class="rsvp__input rsvp__textarea"
+          rows="2"
+          placeholder="Аллергия, вегетарианство, детское меню - напишите здесь"
+        />
+      </div>
+
       <div class="rsvp__field">
         <p class="rsvp__label">Текст ответа</p>
         <p class="rsvp__preview" data-rsvp-preview>{{ defaultMessage }}</p>
@@ -224,6 +271,55 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 .rsvp__note {
   font-size: 0.78rem;
   color: var(--ink-soft);
+}
+
+.rsvp__textarea {
+  min-height: 68px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/**
+ * «Таблетки» опроса на сетке, а не на флексе: при переносе флекс растягивал
+ * последний вариант на всю строку, и ряд выглядел кривым. Колонки сами
+ * подстраиваются под ширину — две на телефоне, больше на широком экране.
+ */
+.rsvp__pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.45rem;
+}
+
+.rsvp__pill {
+  min-height: 42px;
+  padding-inline: 0.75rem;
+  font-size: 0.88rem;
+}
+
+/* Выбранное состояние берём из aria-pressed — как у ответа «буду». */
+.rsvp__pill[aria-pressed='true'] {
+  background: linear-gradient(
+      color-mix(in srgb, var(--sage) 15%, var(--card)),
+      color-mix(in srgb, var(--gold) 12%, var(--card))
+    )
+    padding-box,
+    linear-gradient(135deg, var(--sage), var(--gold)) border-box;
+  color: var(--sage-ink);
+  font-weight: 600;
+}
+
+/* Вид вина: появляется, когда отмечено «вино». Класс снимает invite.js. */
+.rsvp__wines {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+
+.rsvp__wines.is-off {
+  display: none;
 }
 
 .rsvp__answers {

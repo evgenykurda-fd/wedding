@@ -478,6 +478,11 @@
     var nameInput = document.querySelector('[data-rsvp-name]')
     var guestsSelect = document.querySelector('[data-rsvp-guests]')
     var guestsField = document.querySelector('[data-rsvp-guests-field]')
+    var noteInput = document.querySelector('[data-rsvp-note]')
+    var drinkButtons = document.querySelectorAll('[data-rsvp-drink]')
+    var wineButtons = document.querySelectorAll('[data-rsvp-wine]')
+    var drinksField = document.querySelector('[data-rsvp-drinks-field]')
+    var wineField = document.querySelector('[data-rsvp-wine-field]')
     var answerButtons = document.querySelectorAll('[data-rsvp-answer]')
     var preview = document.querySelector('[data-rsvp-preview]')
     var sendLink = document.querySelector('[data-rsvp-send]')
@@ -489,6 +494,45 @@
     var texts = CFG.rsvpText || {}
     var answer = 'yes'
 
+    function isOn(button) {
+      return button.getAttribute('aria-pressed') === 'true'
+    }
+
+    function label(button) {
+      return (button.textContent || '').trim().toLowerCase()
+    }
+
+    /** Отмечено ли «вино» — от этого зависит показ списка сортов. */
+    function winePicked() {
+      var picked = false
+      forEach(drinkButtons, function (button) {
+        if (button.getAttribute('data-rsvp-drink') === 'wine' && isOn(button)) picked = true
+      })
+      return picked
+    }
+
+    /** «Крепкий, вино (белое сухое), игристое» — строка для сообщения. */
+    function drinksText() {
+      var parts = []
+
+      forEach(drinkButtons, function (button) {
+        if (!isOn(button)) return
+
+        var text = label(button)
+        if (button.getAttribute('data-rsvp-drink') === 'wine') {
+          var wines = []
+          forEach(wineButtons, function (wine) {
+            if (isOn(wine)) wines.push(label(wine))
+          })
+          if (wines.length) text += ' (' + wines.join(', ') + ')'
+        }
+
+        parts.push(text)
+      })
+
+      return parts.join(', ')
+    }
+
     function buildMessage() {
       var name = nameInput ? nameInput.value.trim() : ''
       var guests = guestsSelect ? parseInt(guestsSelect.value, 10) || 1 : 1
@@ -497,15 +541,25 @@
         ? String(texts.greetWithName || '').replace('{name}', name)
         : String(texts.greet || '')
       var body = answer === 'yes' ? texts.yes : texts.no
-      // Число имеет смысл только при «буду» и только если гость не один.
+
+      // Число и напитки имеют смысл только при «буду»; примечание — всегда.
       var tail = ''
+
       if (answer === 'yes' && guests > 1) {
-        tail =
+        tail +=
           ' ' +
           String(texts.count || '')
             .replace('{count}', String(guests))
             .replace('{word}', pluralRu(guests, (CFG.plural || {}).people))
       }
+
+      if (answer === 'yes') {
+        var drinks = drinksText()
+        if (drinks) tail += ' ' + String(texts.drinks || '').replace('{drinks}', drinks)
+      }
+
+      var note = noteInput ? noteInput.value.trim() : ''
+      if (note) tail += ' ' + String(texts.note || '').replace('{note}', note)
 
       return (greeting + ' ' + (body || '') + tail).trim()
     }
@@ -513,8 +567,10 @@
     function sync() {
       if (preview) preview.textContent = buildMessage()
 
-      // Число гостей спрашиваем только у тех, кто едет.
+      // Число гостей и напитки спрашиваем только у тех, кто едет.
       if (guestsField) guestsField.classList.toggle('is-off', answer !== 'yes')
+      if (drinksField) drinksField.classList.toggle('is-off', answer !== 'yes')
+      if (wineField) wineField.classList.toggle('is-off', !winePicked())
 
       forEach(answerButtons, function (button) {
         var isActive = button.getAttribute('data-rsvp-answer') === answer
@@ -532,7 +588,38 @@
     })
 
     if (nameInput) nameInput.addEventListener('input', sync)
+    if (noteInput) noteInput.addEventListener('input', sync)
     if (guestsSelect) guestsSelect.addEventListener('change', sync)
+
+    /**
+     * Опрос про напитки. «Без алкоголя» и остальные варианты друг друга
+     * гасят: одновременно они бессмысленны.
+     */
+    forEach(drinkButtons, function (button) {
+      button.addEventListener('click', function () {
+        var turningOn = !isOn(button)
+        var id = button.getAttribute('data-rsvp-drink')
+
+        button.setAttribute('aria-pressed', turningOn ? 'true' : 'false')
+
+        if (turningOn) {
+          forEach(drinkButtons, function (other) {
+            if (other === button) return
+            var otherId = other.getAttribute('data-rsvp-drink')
+            if (id === 'soft' || otherId === 'soft') other.setAttribute('aria-pressed', 'false')
+          })
+        }
+
+        sync()
+      })
+    })
+
+    forEach(wineButtons, function (button) {
+      button.addEventListener('click', function () {
+        button.setAttribute('aria-pressed', isOn(button) ? 'false' : 'true')
+        sync()
+      })
+    })
 
     /**
      * Если прямая отправка не удалась, следующий клик по кнопке уже не

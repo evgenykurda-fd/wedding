@@ -22,14 +22,11 @@ import { WEDDING } from '~/utils/wedding'
         <CountdownBlock />
       </SectionShell>
 
-      <SectionShell eyebrow="Расписание" title="Программа дня">
-        <DayTimeline />
-      </SectionShell>
-
-      <SectionShell tone="soft" divider eyebrow="Развлечения" title="Суперигра">
-        <SuperGame />
-      </SectionShell>
-
+      <!--
+        Порядок секций — по тому, в каком гость задаёт вопросы:
+        куда ехать → во сколько что → как добраться → что надеть →
+        чем займёмся → о чём просим → и наконец ответ.
+      -->
       <SectionShell eyebrow="Локации" title="Где всё будет">
         <div class="venues">
           <VenueCard :venue="WEDDING.venues.ceremony" />
@@ -37,12 +34,20 @@ import { WEDDING } from '~/utils/wedding'
         </div>
       </SectionShell>
 
-      <SectionShell tone="soft" divider eyebrow="Трансфер" title="Как доберёмся">
+      <SectionShell tone="soft" divider eyebrow="Расписание" title="Программа дня">
+        <DayTimeline />
+      </SectionShell>
+
+      <SectionShell eyebrow="Трансфер" title="Как доберёмся">
         <TransferBlock />
       </SectionShell>
 
-      <SectionShell eyebrow="Дресс-код">
+      <SectionShell tone="soft" divider eyebrow="Дресс-код">
         <DressCode />
+      </SectionShell>
+
+      <SectionShell eyebrow="Развлечения" title="Суперигра">
+        <SuperGame />
       </SectionShell>
 
       <SectionShell tone="soft" divider eyebrow="Пожелания" title="Несколько просьб">
