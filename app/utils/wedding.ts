@@ -83,6 +83,13 @@ export function googleMapUrl(query: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
 
+/**
+ * Время сбора гостей. Вынесено в константу, потому что его называют два
+ * места сразу — письмо и программа дня, — а внутри литерала WEDDING
+ * сослаться на его же поле нельзя.
+ */
+const GATHER_TIME = '14:40'
+
 export const WEDDING = {
   groom: 'Евгений',
   bride: 'Карина',
@@ -111,6 +118,9 @@ export const WEDDING = {
   partyEndISO: '2026-08-29T23:00:00+03:00',
 
   rsvpDeadline: '21 августа',
+
+  /** К этому времени просим приезжать: письмо называет его прямо. */
+  gatherTime: GATHER_TIME,
 
   // ─────────────────────────────────────────────────────────────────────
   // ЗАМЕНИТЕ ЭТИ ТРИ СТРОКИ на свои контакты — это единственное, что
@@ -173,10 +183,10 @@ export const WEDDING = {
 
   timeline: [
     {
-      time: '14:40',
+      time: GATHER_TIME,
       title: 'Сбор гостей',
       place: 'комплекс «Лошицкий»',
-      note: 'Приезжайте чуть заранее - успеем обняться до церемонии.',
+      note: 'Ждём вас к этому времени - успеем обняться до церемонии.',
     },
     {
       time: '15:05',
