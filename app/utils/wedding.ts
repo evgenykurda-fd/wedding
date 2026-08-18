@@ -292,6 +292,8 @@ export const WEDDING = {
         },
       },
       { id: 'sparkling', label: 'Игристое' },
+      /** «Не важно» и «Без алкоголя» гасят остальные пункты и друг друга. */
+      { id: 'any', label: 'Не важно' },
       { id: 'soft', label: 'Без алкоголя' },
     ] as readonly DrinkOption[],
   },

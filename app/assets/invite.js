@@ -594,10 +594,11 @@
     if (noteInput) noteInput.addEventListener('input', sync)
     if (guestsSelect) guestsSelect.addEventListener('change', sync)
 
-    /**
-     * Опрос про напитки. «Без алкоголя» и остальные варианты друг друга
-     * гасят: одновременно они бессмысленны.
-     */
+    /** Пункты, которые не сочетаются ни с чем: «не важно» и «без алкоголя». */
+    function exclusive(id) {
+      return id === 'any' || id === 'soft'
+    }
+
     forEach(drinkButtons, function (button) {
       button.addEventListener('click', function () {
         var turningOn = !isOn(button)
@@ -609,7 +610,7 @@
           forEach(drinkButtons, function (other) {
             if (other === button) return
             var otherId = other.getAttribute('data-rsvp-drink')
-            if (id === 'soft' || otherId === 'soft') other.setAttribute('aria-pressed', 'false')
+            if (exclusive(id) || exclusive(otherId)) other.setAttribute('aria-pressed', 'false')
           })
         }
 

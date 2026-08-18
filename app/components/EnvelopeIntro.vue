@@ -236,9 +236,13 @@ html.has-js .env.is-done {
   transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.7s ease;
 }
 
-/* Когда письмо вышло, конверт чуть отступает назад. */
+/**
+ * Когда письмо вышло, конверт отступает назад и притухает: иначе его края
+ * торчат из-за листа двумя тёмными ушами и читаются как артефакт.
+ */
 .env.is-opened .env__stage {
-  transform: translateY(4%) scale(0.97);
+  transform: translateY(5%) scale(0.94);
+  opacity: 0.4;
 }
 
 .env.is-leaving .env__stage {
