@@ -507,11 +507,26 @@
     var copyButton = document.querySelector('[data-rsvp-copy]')
     var editButton = document.querySelector('[data-rsvp-edit]')
     var sendLabel = document.querySelector('[data-rsvp-send-label]')
+    var nameError = document.querySelector('[data-rsvp-name-error]')
+
+    /** Поля формы по ключам снимка — по ним расставляются пометки о правках. */
+    var fields = []
+    forEach(document.querySelectorAll('[data-rsvp-field]'), function (el) {
+      fields.push({ key: el.getAttribute('data-rsvp-field'), el: el })
+    })
 
     if (!answerButtons.length && !preview) return
 
     var texts = CFG.rsvpText || {}
     var answer = 'yes'
+
+    /**
+     * Отправленный ответ. sentState — снимок того, что уже уехало в чат;
+     * editing — гость вернулся его править. Пока оба на месте, изменённые
+     * поля помечаются в форме, а сообщение уходит с пометкой о правке.
+     */
+    var sentState = null
+    var editing = false
 
     function isOn(button) {
       return button.getAttribute('aria-pressed') === 'true'
@@ -552,8 +567,79 @@
       return parts.join(', ')
     }
 
+    /** Имя и фамилия — единственное обязательное поле формы. */
+    function nameValue() {
+      return nameInput ? nameInput.value.trim() : ''
+    }
+
+    function showNameError(show) {
+      if (nameInput) nameInput.setAttribute('aria-invalid', show ? 'true' : 'false')
+      if (nameError) nameError.classList.toggle('is-off', !show)
+    }
+
+    /**
+     * Без имени ответ бесполезен: в чат придёт «Привет! Буду» без подписи, и
+     * гостя не опознать. Поэтому ни отправки, ни копирования — показываем
+     * ошибку и ставим курсор в поле.
+     */
+    function nameMissing() {
+      if (!nameInput || nameValue()) {
+        showNameError(false)
+        return false
+      }
+
+      showNameError(true)
+
+      // Кнопка отправки и поле имени — на разных концах формы, на телефоне
+      // одновременно они не видны. Поэтому сначала прокручиваем гостя к полю,
+      // и только потом ставим курсор: focus без preventScroll дёрнул бы
+      // страницу второй раз, уже поверх плавной прокрутки.
+      if (nameInput) {
+        if (typeof nameInput.scrollIntoView === 'function') {
+          nameInput.scrollIntoView({
+            block: 'center',
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          })
+        }
+        if (typeof nameInput.focus === 'function') nameInput.focus({ preventScroll: true })
+      }
+
+      say('Напишите, пожалуйста, имя и фамилию - иначе мы не поймём, кто ответил.')
+      return true
+    }
+
+    /**
+     * Пока имя не заполнено, отправлять нечего: кнопки выглядят выключенными.
+     * Именно выглядят — клик мы принимаем, чтобы прокрутить гостя к пустому
+     * полю и сказать, чего не хватает; настоящий disabled такой клик бы съел.
+     */
+    function paintLock() {
+      var locked = Boolean(nameInput) && !nameValue()
+
+      if (sendLink && !sent) {
+        sendLink.classList.toggle('is-locked', locked)
+        sendLink.setAttribute('aria-disabled', locked ? 'true' : 'false')
+      }
+
+      if (copyButton) {
+        copyButton.classList.toggle('is-locked', locked)
+        copyButton.setAttribute('aria-disabled', locked ? 'true' : 'false')
+      }
+    }
+
+    /** Снимок ответа: по нему видно, что гость поправил после отправки. */
+    function snapshot() {
+      return {
+        name: nameValue(),
+        answer: answer,
+        guests: guestsSelect ? guestsSelect.value : '',
+        drinks: drinksText(),
+        note: noteInput ? noteInput.value.trim() : '',
+      }
+    }
+
     function buildMessage() {
-      var name = nameInput ? nameInput.value.trim() : ''
+      var name = nameValue()
       var guests = guestsSelect ? parseInt(guestsSelect.value, 10) || 1 : 1
 
       var greeting = name
@@ -580,11 +666,21 @@
       var note = noteInput ? noteInput.value.trim() : ''
       if (note) tail += ' ' + String(texts.note || '').replace('{note}', note)
 
-      return (greeting + ' ' + (body || '') + tail).trim()
+      var text = (greeting + ' ' + (body || '') + tail).trim()
+
+      // Правку помечаем в самом сообщении: в чате уже лежит первый ответ этого
+      // гостя, и без пометки второй читался бы как ответ ещё одного человека.
+      var mark = editing && sentState ? String(texts.edited || '').trim() : ''
+
+      return mark ? (mark + ' ' + text).trim() : text
     }
 
     function sync() {
       if (preview) preview.textContent = buildMessage()
+
+      // Имя появилось — ругаться больше не за что, и кнопки оживают.
+      if (nameValue()) showNameError(false)
+      paintLock()
 
       // Число гостей и напитки спрашиваем только у тех, кто едет.
       if (guestsField) guestsField.classList.toggle('is-off', answer !== 'yes')
@@ -597,6 +693,13 @@
       forEach(answerButtons, function (button) {
         var isActive = button.getAttribute('data-rsvp-answer') === answer
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+      })
+
+      // Пометки о правках: сравниваем форму с тем ответом, который уже уехал.
+      var current = snapshot()
+      forEach(fields, function (field) {
+        var changed = Boolean(editing && sentState) && current[field.key] !== sentState[field.key]
+        field.el.classList.toggle('is-changed', changed)
       })
     }
 
@@ -667,7 +770,8 @@
        по-настоящему (disabled), а кнопка отправки вместо призыва держит
        подпись «Ответ отправлен» с галочкой. Гость не остаётся запертым —
        кнопка «Внести изменения» возвращает форму в рабочее состояние, и
-       ответ можно отправить заново.
+       ответ можно отправить заново. Тогда поправленные поля получают пометку
+       «изменено», а сообщение — пометку о правке.
        ---------------------------------------------------------------- */
     var sent = false
     /** Обе подписи приходят из разметки: тексты живут рядом с вёрсткой. */
@@ -694,6 +798,8 @@
       // табуляции, а клики отсекает и обработчик, и pointer-events в CSS.
       if (sendLink) {
         sendLink.classList.toggle('is-sent', value)
+        // Отправленная кнопка уже не «ждёт имя»: свой вид ей задаёт is-sent.
+        if (value) sendLink.classList.remove('is-locked')
         sendLink.setAttribute('aria-disabled', value ? 'true' : 'false')
         if (value) sendLink.setAttribute('tabindex', '-1')
         else sendLink.removeAttribute('tabindex')
@@ -709,7 +815,10 @@
 
     if (editButton) {
       editButton.addEventListener('click', function () {
+        editing = Boolean(sentState)
         setSent(false)
+        // Превью сразу показывает пометку о правке — гость видит, что уедет.
+        sync()
         say('Форма снова открыта - поправьте ответ и отправьте заново.')
       })
     }
@@ -731,7 +840,16 @@
           return
         }
 
+        // Без имени не отправляем: ответ без подписи нам ничего не скажет.
+        if (nameMissing()) {
+          event.preventDefault()
+          return
+        }
+
         var message = buildMessage()
+        // Снимок берём здесь же, вместе с текстом: ответ придёт через сеть, и
+        // к тому времени гость успел бы дописать в поле лишнюю букву.
+        var pending = snapshot()
 
         if (directBroken) {
           copyText(message)
@@ -741,8 +859,15 @@
 
         var sending = sendToBot(message, function (ok) {
           if (ok) {
+            var wasEdit = Boolean(editing && sentState)
+
+            // Теперь у нас этот ответ: снимок станет точкой отсчёта для
+            // следующей правки, а пометки о прошлой уже не нужны.
+            sentState = pending
+            editing = false
             setSent(true)
-            say('Спасибо! Мы получили ваш ответ.')
+            sync()
+            say(wasEdit ? 'Готово! Мы записали новый ответ.' : 'Спасибо! Мы получили ваш ответ.')
             return
           }
 
@@ -767,6 +892,7 @@
 
     if (copyButton) {
       copyButton.addEventListener('click', function () {
+        if (nameMissing()) return
         copyText(buildMessage())
         say('Скопировано.')
       })

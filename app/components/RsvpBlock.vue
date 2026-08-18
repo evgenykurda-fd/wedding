@@ -38,20 +38,32 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
     </p>
 
     <div class="rsvp__form card" data-reveal>
-      <div class="rsvp__field">
-        <label class="rsvp__label" for="rsvp-name">Как вас записать?</label>
+      <div class="rsvp__field" data-rsvp-field="name">
+        <label class="rsvp__label" for="rsvp-name">
+          Как вас записать? <span class="rsvp__required" aria-hidden="true">*</span>
+        </label>
+        <span class="rsvp__changed">изменено</span>
         <input
           id="rsvp-name"
           data-rsvp-name
           class="rsvp__input"
           type="text"
           autocomplete="name"
+          required
+          aria-required="true"
+          aria-describedby="rsvp-name-error"
           placeholder="Имя и фамилия"
         />
+        <!-- Единственная проверка в форме. Показывает invite.js, когда ответ
+             пытаются отправить без имени: снимает класс is-off. -->
+        <p id="rsvp-name-error" class="rsvp__error is-off" data-rsvp-name-error role="alert">
+          Напишите имя и фамилию - иначе мы не поймём, кто ответил.
+        </p>
       </div>
 
-      <div class="rsvp__field">
+      <div class="rsvp__field" data-rsvp-field="answer">
         <p class="rsvp__label" id="rsvp-answer-label">Ваш ответ</p>
+        <span class="rsvp__changed">изменено</span>
         <div class="rsvp__answers" role="group" aria-labelledby="rsvp-answer-label">
           <button type="button" class="btn rsvp__answer" data-rsvp-answer="yes" aria-pressed="true">
             Буду
@@ -64,8 +76,9 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 
       <!-- Число гостей. Поле прячется, если выбрано «не смогу», — этим
            занимается invite.js. -->
-      <div class="rsvp__field" data-rsvp-guests-field>
+      <div class="rsvp__field" data-rsvp-guests-field data-rsvp-field="guests">
         <label class="rsvp__label" for="rsvp-guests">Сколько вас будет?</label>
+        <span class="rsvp__changed">изменено</span>
         <select id="rsvp-guests" data-rsvp-guests class="rsvp__select">
           <option v-for="option in guestOptions" :key="option.value" :value="option.value">
             {{ option.label }}
@@ -76,8 +89,9 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 
       <!-- Опрос про напитки. Прячется вместе с числом гостей, если гость
            выбрал «не смогу». -->
-      <div class="rsvp__field" data-rsvp-drinks-field>
+      <div class="rsvp__field" data-rsvp-drinks-field data-rsvp-field="drinks">
         <p class="rsvp__label" id="rsvp-drinks-label">{{ WEDDING.drinks.title }}</p>
+        <span class="rsvp__changed">изменено</span>
         <div class="rsvp__pills" role="group" aria-labelledby="rsvp-drinks-label">
           <button
             v-for="option in WEDDING.drinks.options"
@@ -117,8 +131,9 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
         </div>
       </div>
 
-      <div class="rsvp__field">
+      <div class="rsvp__field" data-rsvp-field="note">
         <label class="rsvp__label" for="rsvp-note">Пожелания по блюдам</label>
+        <span class="rsvp__changed">изменено</span>
         <textarea
           id="rsvp-note"
           data-rsvp-note
@@ -249,6 +264,7 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 }
 
 .rsvp__field {
+  position: relative;
   display: grid;
   gap: 0.45rem;
 }
@@ -264,6 +280,38 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--sage-ink);
+}
+
+/* Звёздочка у единственного обязательного поля: имя нужно всегда. */
+.rsvp__required {
+  color: var(--rose-ink);
+}
+
+/**
+ * Пометка «изменено». Стоит в углу поля, которое гость поправил после
+ * отправки: класс is-changed ставит invite.js, сравнивая форму с тем
+ * ответом, который уже уехал.
+ */
+.rsvp__changed {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.rsvp__field.is-changed > .rsvp__changed {
+  display: block;
+}
+
+/* Само поле тоже подсвечиваем — пометка в углу может остаться незамеченной. */
+.rsvp__field.is-changed .rsvp__input,
+.rsvp__field.is-changed .rsvp__select {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line-strong));
 }
 
 .rsvp__input {
@@ -298,6 +346,25 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 .rsvp__note {
   font-size: 0.78rem;
   color: var(--ink-soft);
+}
+
+/**
+ * Ошибка под полем имени. Показывается только по нажатию на отправку:
+ * ругаться на пустое поле, пока гость до него не дошёл, незачем.
+ * Специфичность выше пометки об изменении — красная рамка важнее.
+ */
+.rsvp__error {
+  font-size: 0.78rem;
+  color: var(--rose-ink);
+}
+
+.rsvp__error.is-off {
+  display: none;
+}
+
+.rsvp__field .rsvp__input[aria-invalid='true'] {
+  border-color: var(--rose-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rose) 35%, transparent);
 }
 
 .rsvp__textarea {
@@ -416,6 +483,18 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
 /* Ответ отправлен — копировать нечего. Класс ставит invite.js. */
 .rsvp__copy.is-off {
   display: none;
+}
+
+/**
+ * Имя ещё не заполнено: отправлять нечего, и кнопки это показывают. Клики
+ * при этом не отключаем — по нажатию invite.js прокручивает гостя к пустому
+ * полю и говорит, чего не хватает.
+ */
+.rsvp__send.is-locked,
+.rsvp__copy.is-locked {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /**
