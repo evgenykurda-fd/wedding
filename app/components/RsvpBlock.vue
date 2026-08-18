@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WEDDING, rsvpMessage, pluralRu, GUEST_PLURAL, MAX_GUESTS } from '~/utils/wedding'
+import { WEDDING, rsvpMessage, pluralRu, ANY_KIND, GUEST_PLURAL, MAX_GUESTS } from '~/utils/wedding'
 
 /**
  * Ответ гостя без бэкенда.
@@ -84,6 +84,7 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
             :key="option.id"
             type="button"
             class="btn rsvp__pill"
+            :class="{ 'rsvp__pill--wide': option.wide }"
             :data-rsvp-drink="option.id"
             aria-pressed="false"
           >
@@ -107,6 +108,7 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
               type="button"
               class="btn rsvp__pill"
               :data-rsvp-sub-option="option.id"
+              :data-rsvp-any="item === ANY_KIND ? '' : undefined"
               aria-pressed="false"
             >
               {{ item }}
@@ -303,6 +305,11 @@ const guestOptions = Array.from({ length: MAX_GUESTS }, (_, index) => {
   min-height: 42px;
   padding-inline: 0.75rem;
   font-size: 0.88rem;
+}
+
+/* Длинная подпись в колонку не влезает и рвётся на две строки. */
+.rsvp__pill--wide {
+  grid-column: 1 / -1;
 }
 
 /* Выбранное состояние берём из aria-pressed — как у ответа «буду». */

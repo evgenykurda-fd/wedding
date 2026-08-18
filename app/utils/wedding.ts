@@ -39,9 +39,14 @@ export interface TimelineItem {
   accent?: boolean
 }
 
+/** Вариант «мне всё равно»: гасит остальные пункты в своей группе. */
+export const ANY_KIND = 'Не важно'
+
 export interface DrinkOption {
   id: string
   label: string
+  /** Занимает всю строку: длинную подпись иначе рвёт на две. */
+  wide?: boolean
   /** Уточнение: сорта или виды. Показывается, только если пункт отмечен. */
   kinds?: { title: string; items: readonly string[] }
 }
@@ -278,9 +283,10 @@ export const WEDDING = {
       {
         id: 'strong',
         label: 'Крепкий алкоголь',
+        wide: true,
         kinds: {
           title: 'Что именно?',
-          items: ['Водка', 'Коньяк', 'Виски', 'Бренди', 'Ром', 'Джин'],
+          items: ['Водка', 'Коньяк', 'Виски', 'Бренди', 'Ром', 'Джин', ANY_KIND],
         },
       },
       {

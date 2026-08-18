@@ -618,9 +618,25 @@
       })
     })
 
+    // В уточнениях та же логика: «не важно» и конкретный вид несовместимы.
     forEach(subButtons, function (button) {
       button.addEventListener('click', function () {
-        button.setAttribute('aria-pressed', isOn(button) ? 'false' : 'true')
+        var turningOn = !isOn(button)
+        var group = button.getAttribute('data-rsvp-sub-option')
+        var isAny = button.hasAttribute('data-rsvp-any')
+
+        button.setAttribute('aria-pressed', turningOn ? 'true' : 'false')
+
+        if (turningOn) {
+          forEach(subButtons, function (other) {
+            if (other === button) return
+            if (other.getAttribute('data-rsvp-sub-option') !== group) return
+            if (isAny || other.hasAttribute('data-rsvp-any')) {
+              other.setAttribute('aria-pressed', 'false')
+            }
+          })
+        }
+
         sync()
       })
     })
